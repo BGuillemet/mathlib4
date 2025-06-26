@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Dagur Asgeirsson
 -/
 import Mathlib.Condensed.Module
+import Mathlib.CategoryTheory.Sites.Coherent.ExtensiveSheaves
+import Mathlib.CategoryTheory.Sites.Coherent.SheafComparison
 
 /-!
 
@@ -49,3 +51,7 @@ instance {A : Type*} [Category A] [HasFiniteLimits A] : HasFiniteLimits (Condens
 instance {A : Type*} [Category A] [HasFiniteColimits A]
     [HasWeakSheafify (coherentTopology CompHaus.{u}) A] : HasFiniteColimits (Condensed.{u} A) :=
   inferInstanceAs (HasFiniteColimits (Sheaf _ _))
+
+instance {A : Type*} [Category A] {X : Condensed A} :
+    PreservesFiniteProducts X.val :=
+  ((Presheaf.isSheaf_iff_preservesFiniteProducts_and_equalizerCondition X.val).1 X.cond).1

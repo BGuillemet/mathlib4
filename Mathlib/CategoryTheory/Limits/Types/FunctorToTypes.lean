@@ -153,6 +153,7 @@ def overYoneda : (sectionOver F)ᵒᵖ ⥤ (Cᵒᵖ ⥤ Type v) where
 lemma overYonedaRightOpIso : (overYoneda F).rightOp = sectionOver.over F ⋙ yoneda.op := by
   rfl
 
+@[simp]
 def overYoneda' : (sectionOver F)ᵒᵖ ⥤ (Cᵒᵖ ⥤ Type (max v w)) :=
   overYoneda F ⋙ ((whiskeringRight _ _ _).obj uliftFunctor)
 

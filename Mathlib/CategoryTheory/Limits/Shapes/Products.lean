@@ -836,7 +836,7 @@ section limMapPi
 
 variable [HasLimit F] [HasProduct F.obj]
 
-/- The canonical morphism from the limit of a functor to the product of its object. -/
+/-- The canonical morphism from the limit of a functor to the product of its object. -/
 abbrev limMapPi : limit F ⟶ ∏ᶜ F.obj :=
   Pi.lift (limit.π F)
 
@@ -856,7 +856,7 @@ section sigmaMapColim
 
 variable [HasColimit F] [HasCoproduct F.obj]
 
-/- The canonical morphism from the coproduct of the objects of a functor to its colimit. -/
+/-- The canonical morphism from the coproduct of the objects of a functor to its colimit. -/
 def sigmaMapColim : ∐ F.obj ⟶ colimit F :=
   Sigma.desc (colimit.ι F)
 

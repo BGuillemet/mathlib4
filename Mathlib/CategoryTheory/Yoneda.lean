@@ -965,6 +965,40 @@ def compYonedaCompWhiskeringLeftMaxRight {D : Type u₂} [Category.{max v₁ v�
   NatIso.ofComponents (fun X => hF.homNatIsoMaxRight _)
     (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
 
+/-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
+@[simps!]
+def homNatIso' {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D} (hF : F.FullyFaithful) (X : C) :
+    F ⋙ coyoneda.obj (op (F.obj X)) ⋙ uliftFunctor.{v₁}
+      ≅ coyoneda.obj (op X) ⋙ uliftFunctor.{v₂} :=
+  NatIso.ofComponents
+    (fun Y => Equiv.toIso (Equiv.ulift.trans <| hF.homEquiv.symm.trans Equiv.ulift.symm))
+    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
+
+/-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
+@[simps!]
+def homNatIsoMaxRight' {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D} (hF : F.FullyFaithful)
+    (X : C) : F ⋙ coyoneda.obj (op (F.obj X)) ≅ coyoneda.obj (op X) ⋙ uliftFunctor.{v₂} :=
+  NatIso.ofComponents
+    (fun Y => Equiv.toIso (hF.homEquiv.symm.trans Equiv.ulift.symm))
+    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
+
+/-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
+@[simps!]
+def compCoyonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D}
+    (hF : F.FullyFaithful) : F.op ⋙ coyoneda ⋙ (whiskeringLeft _ _ _).obj F ⋙
+      (CategoryTheory.whiskeringRight _ _ _).obj uliftFunctor.{v₁} ≅
+      coyoneda ⋙ (CategoryTheory.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
+  NatIso.ofComponents (fun X => hF.homNatIso' _)
+    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
+
+/-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
+@[simps!]
+def compCoyonedaCompWhiskeringLeftMaxRight {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D}
+    (hF : F.FullyFaithful) : F.op ⋙ coyoneda ⋙ (whiskeringLeft _ _ _).obj F ≅
+      coyoneda ⋙ (CategoryTheory.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
+  NatIso.ofComponents (fun X => hF.homNatIsoMaxRight' _)
+    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
+
 end Functor.FullyFaithful
 
 end CategoryTheory
