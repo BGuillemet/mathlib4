@@ -51,19 +51,27 @@ noncomputable def jsp' (n : ℕ) (S : Fin n → CompHaus.{u}ᵒᵖ) :
   #check preservesLimitNatIso_hom_app
   sorry
 
-noncomputable def jsp (n : ℕ) :
-    (lim (J := Discrete (Fin n)) (C := CompHaus.{u}ᵒᵖ))
-    ⋙ evaluation CompHaus.{u}ᵒᵖ (Type (u + 1))
-    ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf (coherentTopology CompHaus) _)
-    ≅ whiskeringLeft _ _ _
-    ⋙ (whiskeringRight _ _ _).obj lim
-    ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf (coherentTopology CompHaus) _) := by
-  apply NatIso.ofComponents
-  intro S S' f
-  simp
-  ext X x
+noncomputable def jsp3 (n : ℕ) (S : (Discrete (Fin n))ᵒᵖ ⥤ CompHausᵒᵖ)
+    (X : Sheaf (coherentTopology CompHaus) (Type (u + 1))) :
+    (sheafToPresheaf (coherentTopology CompHaus) (Type (u + 1))
+    ⋙ (evaluation CompHausᵒᵖ (Type (u + 1))).obj (limit S)).obj X
+    ≅ (limit (S ⋙ evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _))).obj X := by
+  refine Iso.trans ?_ (limitObjIsoLimitCompEvaluation _ X).symm
   simp
   sorry
+
+noncomputable def jsp2 (n : ℕ) (S : (Discrete (Fin n))ᵒᵖ ⥤ CompHausᵒᵖ) :
+    sheafToPresheaf (coherentTopology CompHaus) (Type (u + 1))
+    ⋙ (evaluation CompHausᵒᵖ (Type (u + 1))).obj (limit S)
+    ≅ limit (S ⋙ evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _)) := by
+  sorry
+
+noncomputable def jsp (n : ℕ) :
+    (lim (J := (Discrete (Fin n))ᵒᵖ) (C := CompHaus.{u}ᵒᵖ))
+    ⋙ evaluation CompHaus.{u}ᵒᵖ (Type (u + 1))
+    ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf (coherentTopology CompHaus) _)
+    ≅ (whiskeringRight _ _ _).obj
+    (evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _)) ⋙ lim := by
   sorry
 
 noncomputable def limCompValNatIso {n : ℕ} (X : CondensedSet.{u}) :
@@ -85,8 +93,11 @@ noncomputable def jsppp (n : ℕ) :
     sorry
   sorry
 
-noncomputable def test''' (n : ℕ) (S : Discrete (Fin n) ⥤ CompHaus) : Opposite.op (colimit S) ≅ limit S.op := by
-  exact (limitOpIsoOpColimit S).symm
+noncomputable def compHausToCondensedOpCompCoyoneda :
+    compHausToCondensed.op ⋙ coyoneda
+      ≅ evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _) :=
+  (coherentTopology CompHaus).largeCurriedYonedaCompUliftFunctorLemma.trans
+    (isoWhiskerLeft _ (isoWhiskerRight ((whiskeringRight _ _ _).mapIso uliftFunctorTrivial) _))
 
 noncomputable def coyonedaOpCompHausToCondensedFiniteCoproductNatIso (n : ℕ)
     (X : Fin n → CompHaus.{u}) :
@@ -99,6 +110,9 @@ noncomputable def coyonedaOpCompHausToCondensedFiniteCoproductNatIso (n : ℕ)
   rw [Functor.comp_id]
   refine Iso.trans ?_ ((preservesLimitIso coyoneda _).symm.trans (coyoneda.mapIso (limitOpIsoOpColimit _)))
   refine (isoWhiskerLeft _ ((evaluation _ _).mapIso (limitOpIsoOpColimit _).symm)).trans ?_
+  refine Iso.trans ?_ (HasLimit.isoOfNatIso (isoWhiskerRight (NatIso.op (Discrete.compNatIsoDiscrete _ _).symm) _))
+  refine Iso.trans ?_ (HasLimit.isoOfNatIso (isoWhiskerLeft (Discrete.functor X).op compHausToCondensedOpCompCoyoneda.symm))
+
   sorry
 
 noncomputable def compHausToCondensed_finiteCoproduct {n : ℕ} (X : Fin n → CompHaus.{u}) :
