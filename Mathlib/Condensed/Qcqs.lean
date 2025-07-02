@@ -51,20 +51,37 @@ noncomputable def jsp' (n : ℕ) (S : Fin n → CompHaus.{u}ᵒᵖ) :
   #check preservesLimitNatIso_hom_app
   sorry
 
-noncomputable def jsp3 (n : ℕ) (S : (Discrete (Fin n))ᵒᵖ ⥤ CompHausᵒᵖ)
-    (X : Sheaf (coherentTopology CompHaus) (Type (u + 1))) :
+noncomputable def jsp3 (n : ℕ) (S : (Discrete (Fin n))ᵒᵖ ⥤ CompHausᵒᵖ) (X : CondensedSet.{u}) :
     (sheafToPresheaf (coherentTopology CompHaus) (Type (u + 1))
     ⋙ (evaluation CompHausᵒᵖ (Type (u + 1))).obj (limit S)).obj X
-    ≅ (limit (S ⋙ evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _))).obj X := by
-  refine Iso.trans ?_ (limitObjIsoLimitCompEvaluation _ X).symm
-  simp
-  sorry
+    ≅ (limit (S ⋙ evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _))).obj X :=
+  have := preservesLimitsOfShape_of_equiv (Discrete.opposite (Fin n)).symm X.val
+  ((preservesLimitIso X.val S).trans (Iso.refl _)).trans (limitObjIsoLimitCompEvaluation
+    (S ⋙ evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _)) X).symm
 
 noncomputable def jsp2 (n : ℕ) (S : (Discrete (Fin n))ᵒᵖ ⥤ CompHausᵒᵖ) :
     sheafToPresheaf (coherentTopology CompHaus) (Type (u + 1))
     ⋙ (evaluation CompHausᵒᵖ (Type (u + 1))).obj (limit S)
     ≅ limit (S ⋙ evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _)) := by
-  sorry
+  refine NatIso.ofComponents (fun X => jsp3 n S X) (fun {X Y} f => ?_)
+  ext x
+  set F := S ⋙ evaluation CompHausᵒᵖ (Type  (u + 1)) ⋙ (whiskeringLeft (Sheaf (coherentTopology CompHaus) (Type (u + 1))) (CompHausᵒᵖ ⥤ (Type (u + 1))) (Type (u + 1))).obj (sheafToPresheaf (coherentTopology CompHaus) (Type (u + 1)))
+  show _ = ((limitObjIsoLimitCompEvaluation _ _).inv ≫ (limit F).map _) _
+  rw [limitObjIsoLimitCompEvaluation_inv_limit_map F f]
+  unfold jsp3
+  simp
+  apply congrArg
+  apply Types.limit_ext _ _ _ (fun j => ?_)
+  have := preservesLimitsOfShape_of_equiv (Discrete.opposite (Fin n)).symm Y.val
+  show ((preservesLimitIso Y.val S).hom ≫ (limit.π (S ⋙ Y.val) j)) _ = (limMap (whiskerLeft F ((evaluation _ _).map f)) ≫ limit.π (F ⋙ (evaluation _ _).obj Y) j) _
+  rw [limMap_π (whiskerLeft F ((evaluation (Sheaf (coherentTopology CompHaus) (Type (u + 1))) (Type (u + 1))).map f)) j]
+  rw [preservesLimitIso_hom_π]
+  show (f.val.app (limit S) ≫ Y.val.map (limit.π S j)) _ = _
+  rw [← f.val.naturality (limit.π S j)]
+  have := preservesLimitsOfShape_of_equiv (Discrete.opposite (Fin n)).symm X.val
+  show _ = (F.obj j).map f (((preservesLimitIso X.val S).hom ≫ limit.π (S ⋙ X.val) j) x)
+  rw [preservesLimitIso_hom_π]
+  rfl
 
 noncomputable def jsp (n : ℕ) :
     (lim (J := (Discrete (Fin n))ᵒᵖ) (C := CompHaus.{u}ᵒᵖ))
@@ -72,6 +89,7 @@ noncomputable def jsp (n : ℕ) :
     ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf (coherentTopology CompHaus) _)
     ≅ (whiskeringRight _ _ _).obj
     (evaluation _ _ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _)) ⋙ lim := by
+  refine NatIso.ofComponents (fun S => jsp2 n S) (fun {S T} f => ?_)
   sorry
 
 noncomputable def limCompValNatIso {n : ℕ} (X : CondensedSet.{u}) :

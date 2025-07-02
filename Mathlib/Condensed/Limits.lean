@@ -52,6 +52,5 @@ instance {A : Type*} [Category A] [HasFiniteColimits A]
     [HasWeakSheafify (coherentTopology CompHaus.{u}) A] : HasFiniteColimits (Condensed.{u} A) :=
   inferInstanceAs (HasFiniteColimits (Sheaf _ _))
 
-instance {A : Type*} [Category A] {X : Condensed A} :
-    PreservesFiniteProducts X.val :=
+instance {A : Type*} [Category A] {X : Condensed A} : PreservesFiniteProducts X.val :=
   ((Presheaf.isSheaf_iff_preservesFiniteProducts_and_equalizerCondition X.val).1 X.cond).1
