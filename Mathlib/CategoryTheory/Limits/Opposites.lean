@@ -296,6 +296,13 @@ lemma limitOpIsoOpColimit_hom_comp_ι (F : J ⥤ C) [HasColimit F] (j : J) :
     (limitOpIsoOpColimit F).hom ≫ (colimit.ι F j).op = limit.π F.op (op j) := by
   simp [← Iso.eq_inv_comp]
 
+/-- A functorial version of `limitOpIsoOpColimit`. -/
+def opHomCompLimNatIsoColimOp [HasColimitsOfShape J C] [HasLimitsOfShape Jᵒᵖ Cᵒᵖ] :
+    Functor.opHom J C ⋙ lim ≅ colim.op := by
+  refine NatIso.ofComponents (fun F => limitOpIsoOpColimit F.unop) fun {F G} f => ?_
+  simp
+  sorry
+
 /-- The limit of `F.leftOp` is the unopposite of `colimit F`. -/
 def limitLeftOpIsoUnopColimit (F : J ⥤ Cᵒᵖ) [HasColimit F] :
     limit F.leftOp ≅ unop (colimit F) :=

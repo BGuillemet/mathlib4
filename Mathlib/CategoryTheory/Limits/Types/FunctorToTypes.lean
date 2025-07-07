@@ -84,7 +84,7 @@ def homEquivOverCompSections :
       naturality {X Y} f := by
         ext x
         simp only [types_comp_apply,
-          ← σ.prop ({fst := f} : sectionOverMorphism F ⟨X, x⟩ ⟨Y, F.map f x⟩)]
+          ← σ.prop ({ fst := f } : sectionOverMorphism F ⟨X, x⟩ ⟨Y, F.map f x⟩)]
         rfl
     }
   left_inv _ := rfl
@@ -106,7 +106,7 @@ def homEquivOverCompSections' :
       naturality {X Y} f := by
         ext x
         simp only [types_comp_apply,
-          ← σ.prop ({fst := f} : sectionOverMorphism F ⟨X, x⟩ ⟨Y, F.map f x⟩)]
+          ← σ.prop ({ fst := f } : sectionOverMorphism F ⟨X, x⟩ ⟨Y, F.map f x⟩)]
         rfl
     }
   left_inv _ := rfl
@@ -119,8 +119,8 @@ abbrev whiskeringRightUlift := (whiskeringRight (sectionOver F) _ _).obj uliftFu
 def coyonedaOpNatIsoWhiskeringLeftOverCompSectionsFunctorSectionOver :
     coyoneda.obj (Opposite.op F) ≅ (whiskeringLeftOver F) ⋙
       (whiskeringRightUlift F) ⋙ Functor.sectionsFunctor (sectionOver F) where
-  hom := {app G := (homEquivOverCompSections' F G).toFun}
-  inv := {app G := (homEquivOverCompSections' F G).invFun}
+  hom := { app G := (homEquivOverCompSections' F G).toFun }
+  inv := { app G := (homEquivOverCompSections' F G).invFun }
 
 /-- An equivalence between maps from `F` to `G` and a limit of sections of `G`. -/
 noncomputable def homEquivLimitOverComp [UnivLE.{max w u, w}] :
