@@ -17,13 +17,13 @@ We deduce an isomorphism between any presheaf `F` and a colimit of representable
 
 universe u v w
 
-open CategoryTheory Limits
+open CategoryTheory Limits Functor
 
 namespace CategoryTheory
 
 section sectionOver
 
-variable {C : Type u} [Category.{v,u} C] (F : C ⥤ Type w)
+variable {C : Type u} [Category.{v, u} C] (F : C ⥤ Type w)
 
 def sectionOver : Type max u w :=  (X : C) × F.obj X
 
@@ -75,7 +75,7 @@ def homEquivOverCompSections :
   toFun α := ⟨
       fun s => α.app s.fst s.snd,
       fun {s s'} f => by
-        show (α.app s.fst ≫ G.map f.fst) s.snd = α.app s'.fst s'.snd
+        change (α.app s.fst ≫ G.map f.fst) s.snd = α.app s'.fst s'.snd
         rw [← α.naturality]
         simp
     ⟩
@@ -97,7 +97,7 @@ def homEquivOverCompSections' :
       fun {s s'} f => by
         simp only [Functor.comp_obj, over_obj, uliftFunctor_obj, Functor.comp_map, over_map,
           uliftFunctor_map, ULift.up.injEq]
-        show (α.app s.fst ≫ G.map f.fst) s.snd = α.app s'.fst s'.snd
+        change (α.app s.fst ≫ G.map f.fst) s.snd = α.app s'.fst s'.snd
         rw [← α.naturality]
         simp
     ⟩
@@ -118,7 +118,7 @@ abbrev whiskeringRightUlift := (whiskeringRight (sectionOver F) _ _).obj uliftFu
 
 def coyonedaOpNatIsoWhiskeringLeftOverCompSectionsFunctorSectionOver :
     coyoneda.obj (Opposite.op F) ≅ (whiskeringLeftOver F) ⋙
-      (whiskeringRightUlift F) ⋙ Functor.sectionsFunctor (sectionOver F) where
+      (whiskeringRightUlift F) ⋙ sectionsFunctor (sectionOver F) where
   hom := { app G := (homEquivOverCompSections' F G).toFun }
   inv := { app G := (homEquivOverCompSections' F G).invFun }
 

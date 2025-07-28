@@ -252,7 +252,7 @@ noncomputable def isoColimitOverYonedaCompPresheafToSheaf [UnivLE.{max u v, v}]
 
 /-- A variant of `isoColimitOverYonedaCompPresheafToSheaf` with heterogeneous universes. -/
 noncomputable def isoColimitOverYonedaCompPresheafToSheaf' [UnivLE.{max u v w, max v w}]
-    [HasWeakSheafify J (Type max v w)] (F : Sheaf J (Type max v w)):
+    [HasWeakSheafify J (Type max v w)] (F : Sheaf J (Type max v w)) :
     F ≅ colimit (overYoneda' F.val ⋙ (presheafToSheaf J (Type max v w))) :=
   (sheafificationIso F).trans
     (((presheafToSheaf _ _).mapIso (natIsoColimitOverYoneda' F.val)).trans

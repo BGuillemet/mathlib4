@@ -979,8 +979,8 @@ def homNatIsoMaxRight' {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D
 @[simps!]
 def compCoyonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D}
     (hF : F.FullyFaithful) : F.op ⋙ coyoneda ⋙ (whiskeringLeft _ _ _).obj F ⋙
-      (CategoryTheory.whiskeringRight _ _ _).obj uliftFunctor.{v₁} ≅
-      coyoneda ⋙ (CategoryTheory.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
+      (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₁} ≅
+      coyoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
   NatIso.ofComponents (fun X => hF.homNatIso' _)
     (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
 
@@ -988,7 +988,7 @@ def compCoyonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C �
 @[simps!]
 def compCoyonedaCompWhiskeringLeftMaxRight {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D}
     (hF : F.FullyFaithful) : F.op ⋙ coyoneda ⋙ (whiskeringLeft _ _ _).obj F ≅
-      coyoneda ⋙ (CategoryTheory.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
+      coyoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
   NatIso.ofComponents (fun X => hF.homNatIsoMaxRight' _)
     (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
 

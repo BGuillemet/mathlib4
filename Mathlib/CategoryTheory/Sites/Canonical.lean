@@ -267,7 +267,7 @@ instance : (J.yoneda).Faithful := (J.yonedaFullyFaithful).faithful
 
 section YonedaLemma
 
-open Opposite
+open Opposite Functor
 
 /-- We have a type-level equivalence between morphisms of sheaves from the yoneda embedding
 and elements of `F.val.obj X`, without any universe switching.
@@ -317,7 +317,7 @@ def yonedaCompSheafComposeUliftFunctorCompSheafToPresheaf :
   Iso.refl _
 
 /-- A variant of `yonedaEquiv` with heterogeneous universes. -/
-def yonedaCompUliftFunctorEquiv (F :Sheaf J (Type max v w)) (X : C) :
+def yonedaCompUliftFunctorEquiv (F : Sheaf J (Type max v w)) (X : C) :
     ((sheafCompose J uliftFunctor).obj (J.yoneda.obj X) ⟶ F) ≃ F.val.obj (op X) :=
   Equiv.trans homEquiv (CategoryTheory.yonedaCompUliftFunctorEquiv F.val X)
 
@@ -342,7 +342,7 @@ lemma yonedaCompUliftFunctorEquiv_naturality {X Y : C} {F : Sheaf J (Type max v 
   simp
 
 lemma yonedaCompUliftFunctorEquiv_comp {X : C} {F G : Sheaf J (Type max v w)}
-    (α : (sheafCompose J uliftFunctor).obj (J.yoneda.obj X)⟶ F) (β : F ⟶ G) :
+    (α : (sheafCompose J uliftFunctor).obj (J.yoneda.obj X) ⟶ F) (β : F ⟶ G) :
     J.yonedaCompUliftFunctorEquiv _ _ (α ≫ β) = β.val.app _ (J.yonedaCompUliftFunctorEquiv _ _ α) :=
   rfl
 

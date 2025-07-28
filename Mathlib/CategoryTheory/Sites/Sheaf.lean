@@ -360,18 +360,18 @@ abbrev Sheaf.homEquiv {X Y : Sheaf J A} : (X ⟶ Y) ≃ (X.val ⟶ Y.val) :=
 variable {J A} in
 /-- `Sheaf.homEquiv` as a natural isomorphism. -/
 def sheafToPresheafCompYonedaCompWhiskeringLeftSheafToPresheaf :
-    sheafToPresheaf J A ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf J A).op
+    sheafToPresheaf J A ⋙ yoneda ⋙ (Functor.whiskeringLeft _ _ _).obj (sheafToPresheaf J A).op
       ≅ yoneda :=
   (fullyFaithfulSheafToPresheaf J A).compYonedaCompWhiskeringLeftMaxRight.trans
-    (isoWhiskerLeft _ (Functor.mapIso _ uliftFunctorTrivial))
+    (Functor.isoWhiskerLeft _ (Functor.mapIso _ uliftFunctorTrivial))
 
 variable {J A} in
 /-- `Sheaf.homEquiv` as a natural isomorphism, using coyoneda. -/
 def sheafToPresheafCompCoyonedaCompWhiskeringLeftSheafToPresheaf :
-    (sheafToPresheaf J A).op ⋙ coyoneda ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf J A)
+    (sheafToPresheaf J A).op ⋙ coyoneda ⋙ (Functor.whiskeringLeft _ _ _).obj (sheafToPresheaf J A)
       ≅ coyoneda :=
   (fullyFaithfulSheafToPresheaf J A).compCoyonedaCompWhiskeringLeftMaxRight.trans
-    (isoWhiskerLeft _ (Functor.mapIso _ uliftFunctorTrivial))
+    (Functor.isoWhiskerLeft _ (Functor.mapIso _ uliftFunctorTrivial))
 
 instance : (sheafToPresheaf J A).Full :=
   (fullyFaithfulSheafToPresheaf J A).full

@@ -22,7 +22,7 @@ We give properties of quasicompact, quasiseparated and qcqs condensed sets.
 
 universe u v w
 
-open CategoryTheory Limits
+open CategoryTheory Limits Functor
 
 namespace Condensed
 
@@ -57,15 +57,15 @@ noncomputable def sheafToPresheafCompEvaluationLimitIso {n : ℕ}
   ext x
   set F := S ⋙ evaluation CompHausᵒᵖ (Type (u + 1)) ⋙ (whiskeringLeft _ _ (Type (u + 1))).obj
     (sheafToPresheaf (coherentTopology CompHaus) (Type (u + 1)))
-  show _ = ((limitObjIsoLimitCompEvaluation _ _).inv ≫ (limit F).map _) _
+  change _ = ((limitObjIsoLimitCompEvaluation _ _).inv ≫ (limit F).map _) _
   rw [limitObjIsoLimitCompEvaluation_inv_limit_map F f]
   refine congrArg _ (Types.limit_ext _ _ _ (fun j => ?_))
-  show ((preservesLimitIso Y.val S).hom ≫ (limit.π (S ⋙ Y.val) j)) _
+  change ((preservesLimitIso Y.val S).hom ≫ (limit.π (S ⋙ Y.val) j)) _
     = (limMap (whiskerLeft F ((evaluation _ _).map f)) ≫ limit.π (F ⋙ (evaluation _ _).obj Y) j) _
   rw [limMap_π, preservesLimitIso_hom_π]
-  show (f.val.app (limit S) ≫ Y.val.map (limit.π S j)) _ = _
+  change (f.val.app (limit S) ≫ Y.val.map (limit.π S j)) _ = _
   rw [← f.val.naturality (limit.π S j)]
-  show _ = (F.obj j).map f (((preservesLimitIso X.val S).hom ≫ limit.π (S ⋙ X.val) j) x)
+  change _ = (F.obj j).map f (((preservesLimitIso X.val S).hom ≫ limit.π (S ⋙ X.val) j) x)
   rw [preservesLimitIso_hom_π]
   rfl
 
@@ -82,20 +82,21 @@ noncomputable def limCompEvaluationCompWhiskeringLeftSheafToPresheafIso (n : ℕ
   set G := T ⋙ evaluation CompHausᵒᵖ (Type (u + 1)) ⋙ (whiskeringLeft _ _ (Type (u + 1))).obj
     (sheafToPresheaf (coherentTopology CompHaus) (Type (u + 1)))
   have := preservesLimitsOfShape_of_equiv (Discrete.opposite (Fin n)).symm X.val
-  show (limitObjIsoLimitCompEvaluation G X).inv
+  change (limitObjIsoLimitCompEvaluation G X).inv
     ((preservesLimitIso X.val T).hom (X.val.map (limMap f) x)) =
     ((preservesLimitIso X.val S).hom ≫ (limitObjIsoLimitCompEvaluation F X).inv ≫
     (limMap (whiskerRight f (_ ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _)))).app X
     ≫ (𝟙 _)) x
   rw [← (limitObjIsoLimitCompEvaluation G X).hom_inv_id]
   refine congrArg _ (Types.limit_ext _ _ _ (fun j => ?_))
-  show _ = ((limitObjIsoLimitCompEvaluation G X).hom ≫ limit.π (G ⋙ (evaluation _ _).obj X) j) _
+  change _ = ((limitObjIsoLimitCompEvaluation G X).hom ≫ limit.π (G ⋙ (evaluation _ _).obj X) j) _
   rw [limitObjIsoLimitCompEvaluation_hom_π]
-  show _ = (limMap _ ≫ limit.π G j).app X _
+  change _ = (limMap _ ≫ limit.π G j).app X _
   rw [limMap_π]
-  show _ = X.val.map (f.app j) (((limitObjIsoLimitCompEvaluation F X).inv ≫ (limit.π F j).app X) _)
+  change _ =
+    X.val.map (f.app j) (((limitObjIsoLimitCompEvaluation F X).inv ≫ (limit.π F j).app X) _)
   rw [limitObjIsoLimitCompEvaluation_inv_π_app]
-  show (X.val.map _ ≫ (preservesLimitIso X.val T).hom ≫ limit.π _ j) x =
+  change (X.val.map _ ≫ (preservesLimitIso X.val T).hom ≫ limit.π _ j) x =
     X.val.map (f.app j) (((preservesLimitIso X.val S).hom ≫ limit.π _ j) x)
   rw [preservesLimitIso_hom_π, preservesLimitIso_hom_π, ← X.val.map_comp]
   simp
@@ -153,7 +154,8 @@ instance : PreservesFiniteCoproducts compHausToCondensed where
   preserves := inferInstance
 
 /- noncomputable def compHausToCondensedIsoYonedaCompUliftFunctorCompPresheafToSheaf :
-    compHausToCondensed ≅ yoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u + 1} ⋙ presheafToSheaf  _ _ :=
+    compHausToCondensed ≅ yoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u + 1} ⋙
+      presheafToSheaf  _ _ :=
   sorry -/
 
 theorem isQuasicompact_iff_compHaus_cover (X : CondensedSet.{u}) :
@@ -168,7 +170,7 @@ theorem isQuasicompact_iff_compHaus_cover (X : CondensedSet.{u}) :
     use ∐ (fun j : Fin n => (e.invFun j).val.unop.fst.unop)
     have (j : Fin n) : compHausToCondensed.obj (e.invFun j).val.unop.fst.unop
         ≅ (overYoneda' X.val ⋙ presheafToSheaf _ _).obj (e.invFun j) := by
-      show compHausToCondensed.obj (e.invFun j).val.unop.fst.unop
+      change compHausToCondensed.obj (e.invFun j).val.unop.fst.unop
         ≅ (yoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u + 1} ⋙ presheafToSheaf _ _).obj
         (e.invFun j).val.unop.fst.unop
       apply Iso.app
@@ -187,3 +189,5 @@ theorem isQuasicompact_iff_compHaus_cover (X : CondensedSet.{u}) :
   · intro ⟨S, f, hf⟩
     refine { isQuasicompact := fun {I G} g hg => ?_ }
     sorry
+
+end Condensed
