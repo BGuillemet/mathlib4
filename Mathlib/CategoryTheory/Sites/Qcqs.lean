@@ -68,7 +68,7 @@ end Quasiseparated
 section Qcqs
 
 /-- A sheaf `F` is qcqs if it is both quasicompact and quasiseparated. -/
-structure Qcqs (F : Sheaf J A) : Prop extends F.Quasicompact, Quasiseparated F
+structure Qcqs (F : Sheaf J A) : Prop extends F.Quasicompact, F.Quasiseparated
 
 end Qcqs
 
