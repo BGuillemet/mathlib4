@@ -3,7 +3,7 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang, Joël Riou
 -/
-import Mathlib.CategoryTheory.Sites.Subsheaf
+import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Sites.CompatibleSheafification
 import Mathlib.CategoryTheory.Sites.LocallyInjective
 /-!
@@ -27,7 +27,7 @@ import Mathlib.CategoryTheory.Sites.LocallyInjective
 
 universe v u w v' u' w'
 
-open Opposite CategoryTheory CategoryTheory.GrothendieckTopology CategoryTheory.Functor
+open Opposite CategoryTheory CategoryTheory.GrothendieckTopology CategoryTheory.Functor Limits
 
 namespace CategoryTheory
 
@@ -63,6 +63,19 @@ theorem imageSieve_app {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) {U : C} (s : ToType (
   ext V i
   simp only [Sieve.top_apply, iff_true, imageSieve_apply]
   exact ⟨F.map i.op s, NatTrans.naturality_apply f i.op s⟩
+
+attribute [local instance] Types.instConcreteCategory Types.instFunLike in
+/-- Given a pullback square induced by `φ : F ⟶ G` and `f : G' ⟶ G`, any image sieve for the
+pullback of `φ` has a subsieve being an image sieve for `φ`. -/
+theorem imageSieve_le_imageSieve_snd {F G G' : Cᵒᵖ ⥤ Type w} (φ : F ⟶ G) (f : G' ⟶ G) {U : C}
+    (s : G'.obj (op U)) : imageSieve φ (f.app (op U) s) ≤ imageSieve (pullback.snd φ f) s := by
+  refine fun V i ⟨t, _⟩ => ⟨((Types.pullbackIsoPullback _ _).inv ≫ (pullbackObjIso φ f _).inv)
+    ⟨⟨t, G'.map i.op s⟩, ?_⟩, ?_⟩
+  · change _ = (G'.map i.op ≫ f.app (op V)) s
+    rwa [f.naturality]
+  · change ((Types.pullbackIsoPullback _ _).inv ≫ (pullbackObjIso φ f _).inv ≫
+      (pullback.snd φ f).app (op V)) _ = G'.map i.op s
+    simp
 
 /-- If a morphism `g : V ⟶ U.unop` belongs to the sieve `imageSieve f s g`, then
 this is choice of a preimage of `G.map g.op s` in `F.obj (op V)`, see
@@ -259,6 +272,13 @@ lemma isLocallySurjective_comp_iff
     infer_instance
 
 attribute [local instance] Types.instFunLike Types.instConcreteCategory in
+/-- The pullback of a locally surjective morphism of presheaves is still locally surjective. -/
+theorem isLocallySurjective_snd_of_isLocallySurjective {F G G' : Cᵒᵖ ⥤ Type w} (φ : F ⟶ G)
+    [IsLocallySurjective J φ] (f : G' ⟶ G) : IsLocallySurjective J (pullback.snd φ f) :=
+  { imageSieve_mem s := J.superset_covering (imageSieve_le_imageSieve_snd φ f s)
+      (imageSieve_mem J φ _) }
+
+attribute [local instance] Types.instFunLike Types.instConcreteCategory in
 instance {F₁ F₂ : Cᵒᵖ ⥤ Type w} (f : F₁ ⟶ F₂) :
     IsLocallySurjective J (Subpresheaf.toRangeSheafify J f) where
   imageSieve_mem {X} := by
@@ -394,39 +414,25 @@ lemma isLocallySurjective_iff_epi {F G : Sheaf J (Type w)} (φ : F ⟶ G)
     rw [isLocallySurjective_iff_isIso φ]
     apply isIso_of_mono_of_epi
 
-attribute [local instance] Types.instConcreteCategory Types.instFunLike
-
-theorem test'' {F G G' : Cᵒᵖ ⥤ Type w} (φ : F ⟶ G) (f : G' ⟶ G) (U : C) (s : G'.obj (op U)) :
-    Presheaf.imageSieve φ (f.app (op U) s) ≤ Presheaf.imageSieve (Limits.pullback.snd φ f) s := by
-  intro V i ⟨t, ht⟩
-  -- #check (Limits.pullbackObjIso φ f (op V)).inv ((Limits.Types.pullbackIsoPullback (φ.app (op V)) (f.app (op V))).inv ⟨⟨t, G'.map i.op s⟩, _⟩)
-  sorry
-
-theorem test' {F G G' : Cᵒᵖ ⥤ Type w} (φ : F ⟶ G) [Presheaf.IsLocallySurjective J φ] (f : G' ⟶ G) :
-    Presheaf.IsLocallySurjective J (Limits.pullback.snd φ f) := by
-  refine { imageSieve_mem {U} s := ?_ }
-  sorry
-
-theorem test {F G G' : Sheaf J (Type w)} (φ : F ⟶ G) [Epi φ] (f : G' ⟶ G)
-    [HasSheafify J (Type w)] : Epi (Limits.pullback.snd φ f) := by
+attribute [local instance] Types.instConcreteCategory Types.instFunLike in
+/-- The pullback of an epimorphism of sheaves of types is still an epimorphism. -/
+theorem epi_snd_of_epi {F G G' : Sheaf J (Type w)} (φ : F ⟶ G) [Epi φ] (f : G' ⟶ G)
+    [HasSheafify J (Type w)] : Epi (pullback.snd φ f) := by
   apply (isLocallySurjective_iff_epi _).1
-  change Presheaf.IsLocallySurjective J ((sheafToPresheaf J (Type w)).map (Limits.pullback.snd φ f))
+  change Presheaf.IsLocallySurjective J ((sheafToPresheaf J (Type w)).map (pullback.snd φ f))
   rw [← preservesLimitIso_hom_π]
   suffices Presheaf.IsLocallySurjective J
-    (Limits.limit.π (Limits.cospan φ f ⋙ sheafToPresheaf J (Type w)) Limits.WalkingCospan.right) by
-    infer_instance
+    (limit.π (cospan φ f ⋙ sheafToPresheaf J (Type w)) WalkingCospan.right) from inferInstance
   suffices Presheaf.IsLocallySurjective J
-    (Limits.limit.π (Limits.cospan φ f ⋙ sheafToPresheaf J (Type w)) Limits.WalkingCospan.right
-    ≫ (Limits.cospanCompIso (sheafToPresheaf J (Type w)) φ f).hom.app Limits.WalkingCospan.right) by
-    apply Presheaf.isLocallySurjective_of_isLocallySurjective_of_isLocallyInjective J _
-      ((Limits.cospanCompIso (sheafToPresheaf J (Type w)) φ f).hom.app Limits.WalkingCospan.right)
-  rw [← Limits.HasLimit.isoOfNatIso_hom_π]
-  simp only [sheafToPresheaf_map]
-  suffices Presheaf.IsLocallySurjective J
-    (Limits.limit.π (Limits.cospan φ.val f.val) Limits.WalkingCospan.right) by
-    infer_instance
+    (limit.π (cospan φ f ⋙ sheafToPresheaf J (Type w)) WalkingCospan.right
+    ≫ (cospanCompIso (sheafToPresheaf J (Type w)) φ f).hom.app WalkingCospan.right) from
+    Presheaf.isLocallySurjective_of_isLocallySurjective_of_isLocallyInjective J _
+      ((cospanCompIso (sheafToPresheaf J (Type w)) φ f).hom.app WalkingCospan.right)
+  simp only [← HasLimit.isoOfNatIso_hom_π, sheafToPresheaf_map]
+  suffices Presheaf.IsLocallySurjective J (limit.π (cospan φ.val f.val) WalkingCospan.right) from
+    inferInstance
   have : IsLocallySurjective φ := (isLocallySurjective_iff_epi φ).2 inferInstance
-  exact test' φ.val f.val
+  exact Presheaf.isLocallySurjective_snd_of_isLocallySurjective J φ.val f.val
 
 end Sheaf
 
