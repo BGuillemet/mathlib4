@@ -394,6 +394,40 @@ lemma isLocallySurjective_iff_epi {F G : Sheaf J (Type w)} (φ : F ⟶ G)
     rw [isLocallySurjective_iff_isIso φ]
     apply isIso_of_mono_of_epi
 
+attribute [local instance] Types.instConcreteCategory Types.instFunLike
+
+theorem test'' {F G G' : Cᵒᵖ ⥤ Type w} (φ : F ⟶ G) (f : G' ⟶ G) (U : C) (s : G'.obj (op U)) :
+    Presheaf.imageSieve φ (f.app (op U) s) ≤ Presheaf.imageSieve (Limits.pullback.snd φ f) s := by
+  intro V i ⟨t, ht⟩
+  -- #check (Limits.pullbackObjIso φ f (op V)).inv ((Limits.Types.pullbackIsoPullback (φ.app (op V)) (f.app (op V))).inv ⟨⟨t, G'.map i.op s⟩, _⟩)
+  sorry
+
+theorem test' {F G G' : Cᵒᵖ ⥤ Type w} (φ : F ⟶ G) [Presheaf.IsLocallySurjective J φ] (f : G' ⟶ G) :
+    Presheaf.IsLocallySurjective J (Limits.pullback.snd φ f) := by
+  refine { imageSieve_mem {U} s := ?_ }
+  sorry
+
+theorem test {F G G' : Sheaf J (Type w)} (φ : F ⟶ G) [Epi φ] (f : G' ⟶ G)
+    [HasSheafify J (Type w)] : Epi (Limits.pullback.snd φ f) := by
+  apply (isLocallySurjective_iff_epi _).1
+  change Presheaf.IsLocallySurjective J ((sheafToPresheaf J (Type w)).map (Limits.pullback.snd φ f))
+  rw [← preservesLimitIso_hom_π]
+  suffices Presheaf.IsLocallySurjective J
+    (Limits.limit.π (Limits.cospan φ f ⋙ sheafToPresheaf J (Type w)) Limits.WalkingCospan.right) by
+    infer_instance
+  suffices Presheaf.IsLocallySurjective J
+    (Limits.limit.π (Limits.cospan φ f ⋙ sheafToPresheaf J (Type w)) Limits.WalkingCospan.right
+    ≫ (Limits.cospanCompIso (sheafToPresheaf J (Type w)) φ f).hom.app Limits.WalkingCospan.right) by
+    apply Presheaf.isLocallySurjective_of_isLocallySurjective_of_isLocallyInjective J _
+      ((Limits.cospanCompIso (sheafToPresheaf J (Type w)) φ f).hom.app Limits.WalkingCospan.right)
+  rw [← Limits.HasLimit.isoOfNatIso_hom_π]
+  simp only [sheafToPresheaf_map]
+  suffices Presheaf.IsLocallySurjective J
+    (Limits.limit.π (Limits.cospan φ.val f.val) Limits.WalkingCospan.right) by
+    infer_instance
+  have : IsLocallySurjective φ := (isLocallySurjective_iff_epi φ).2 inferInstance
+  exact test' φ.val f.val
+
 end Sheaf
 
 namespace Presieve.FamilyOfElements
