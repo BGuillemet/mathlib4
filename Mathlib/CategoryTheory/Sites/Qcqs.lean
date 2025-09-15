@@ -30,21 +30,21 @@ section Quasicompact
 
 /-- A sheaf `F` is quasicompact if any cover `∐ G ⟶ F` admits a finite subcover. -/
 structure Quasicompact (F : Sheaf J A) : Prop where
-  isQuasicompact : ∀ {I : Type v'} {G : I → Sheaf J A} (f : ∐ G ⟶ F) [Epi f],
+  exists_finset_epi : ∀ {I : Type v'} {G : I → Sheaf J A} (f : ∐ G ⟶ F) [Epi f],
     ∃ J : Finset I, Epi ((Limits.Sigma.map' Subtype.val (fun (j : J) => 𝟙 (G j))) ≫ f)
 
-theorem quasicompact_iff_finite_subcover (F : Sheaf J A) :
-    Quasicompact F
-    ↔ ∀ (I : Type v') (G : I → Sheaf J A) (f : ∐ G ⟶ F) [Epi f],
+lemma exists_finset_epi (F : Sheaf J A) (hF : Quasicompact F) {I : Type v'} {G : I → Sheaf J A}
+    (f : ∐ G ⟶ F) [Epi f] :
     ∃ J : Finset I, Epi ((Limits.Sigma.map' Subtype.val (fun (j : J) => 𝟙 (G j))) ≫ f) :=
-  sorry
+  hF.exists_finset_epi f
 
-lemma quasicompact_of_finite_presieve_quasicompact (F : Sheaf J A) (I : Type v') (hI : Fintype I)
-    (G : I → Sheaf J A) (hG : ∀ i : I, Quasicompact (G i)) (f : ∐ G ⟶ F) [Epi f] :
-    F.Quasicompact where
-  isQuasicompact f' := by
+lemma quasicompact_of_finite_presieve_quasicompact [Limits.HasPullbacks A] {F : Sheaf J A}
+    {I : Type v'} (hI : Fintype I) {G : I → Sheaf J A} (hG : ∀ i : I, Quasicompact (G i))
+    (f : ∐ G ⟶ F) [Epi f] : F.Quasicompact where
+  exists_finset_epi {I' G'} f' [Epi f'] := by
+    /- #check (fun i : I => (hG i).exists_finset_epi (Limits.pullback.snd f' (Limits.Sigma.ι G i ≫ f)))
+    choose J' hJ' using (fun i : I => (hG i).exists_finset_epi (Limits.pullback.snd f' (Limits.Sigma.ι G i ≫ f))) -/
     sorry
-    --choose J' hJ' using (fun i : I => hG i I' (fun i' => Limits.pullback (Sigma.ι i ≫ f) f') _)
 
 end Quasicompact
 
@@ -61,7 +61,12 @@ structure QuasicompactMap {F G : Sheaf J A} (g : G ⟶ F) : Prop where
 /-- A sheaf `F` is quasiseparated if any morphism `F' ⟶ F` with quasicompact source is
   quasicompact. -/
 structure Quasiseparated (F : Sheaf J A) : Prop where
-  isQuasiseparated : ∀ (F' : Sheaf J A) (f : F' ⟶ F), F'.Quasicompact → QuasicompactMap f
+  quasicompactMap_of_quasicompact (F' : Sheaf J A) (f : F' ⟶ F) (hF' : F'.Quasicompact) :
+    QuasicompactMap f
+
+lemma quasicompactMap_of_quasicompact (F : Sheaf J A) (hF : Quasiseparated F) (F' : Sheaf J A)
+    (f : F' ⟶ F) (hF' : F'.Quasicompact) : QuasicompactMap f :=
+  hF.quasicompactMap_of_quasicompact F' f hF'
 
 end Quasiseparated
 

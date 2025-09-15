@@ -162,7 +162,7 @@ theorem isQuasicompact_iff_compHaus_cover (X : CondensedSet.{u}) :
     X.Quasicompact ↔ ∃ S : CompHaus.{u}, ∃ f : compHausToCondensed.obj S ⟶ X, Epi f := by
   constructor
   · intro hX
-    obtain ⟨J, hJ⟩ := hX.isQuasicompact
+    obtain ⟨J, hJ⟩ := hX.exists_finset_epi
       (Limits.sigmaMapColim (overYoneda' X.val ⋙ presheafToSheaf _ _)
       ≫ (Sheaf.isoColimitOverYonedaCompPresheafToSheaf'.{u + 1} X).inv)
     obtain ⟨n, hn⟩ := Finite.exists_equiv_fin J
@@ -187,7 +187,8 @@ theorem isQuasicompact_iff_compHaus_cover (X : CondensedSet.{u}) :
       ≫ (Sheaf.isoColimitOverYonedaCompPresheafToSheaf'.{u + 1} X).inv
     exact epi_comp' inferInstance hJ
   · intro ⟨S, f, hf⟩
-    refine { isQuasicompact := fun {I G} g hg => ?_ }
+    refine { exists_finset_epi := fun {I G} g hg => ?_ }
+
     sorry
 
 end Condensed
