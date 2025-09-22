@@ -66,6 +66,13 @@ def Hom.opEquiv {V} [Quiver V] {X Y : V} :
   toFun := Opposite.op
   invFun := Opposite.unop
 
+/-- The bijection `(X ⟶ Y) ≃ (unop Y ⟶ unop X)`. -/
+@[simps]
+def Hom.unopEquiv {V} [Quiver V] {X Y : Vᵒᵖ} :
+    (X ⟶ Y) ≃ (Opposite.unop Y ⟶ Opposite.unop X) where
+  toFun := Opposite.unop
+  invFun := Opposite.op
+
 /-- A type synonym for a quiver with no arrows. -/
 def Empty (V : Type u) : Type u := V
 

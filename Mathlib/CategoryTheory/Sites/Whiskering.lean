@@ -49,11 +49,17 @@ def sheafCompose : Sheaf J A ⥤ Sheaf J B where
   map_id _ := Sheaf.Hom.ext <| whiskerRight_id _
   map_comp _ _ := Sheaf.Hom.ext <| whiskerRight_comp _ _ _
 
+variable {F G}
+
 instance [F.Faithful] : (sheafCompose J F ⋙ sheafToPresheaf _ _).Faithful :=
   show (sheafToPresheaf _ _ ⋙ (whiskeringRight Cᵒᵖ A B).obj F).Faithful from inferInstance
 
 instance [F.Faithful] [F.Full] : (sheafCompose J F ⋙ sheafToPresheaf _ _).Full :=
   show (sheafToPresheaf _ _ ⋙ (whiskeringRight Cᵒᵖ A B).obj F).Full from inferInstance
+
+def sheafComposeCompSheafToPresheafFullyFaithful (hF : F.FullyFaithful) :
+    (sheafCompose J F ⋙ sheafToPresheaf _ _).FullyFaithful :=
+  (fullyFaithfulSheafToPresheaf J A).comp (hF.whiskeringRight Cᵒᵖ)
 
 instance [F.Faithful] : (sheafCompose J F).Faithful :=
   Functor.Faithful.of_comp (sheafCompose J F) (sheafToPresheaf _ _)
@@ -61,14 +67,15 @@ instance [F.Faithful] : (sheafCompose J F).Faithful :=
 instance [F.Full] [F.Faithful] : (sheafCompose J F).Full :=
   Functor.Full.of_comp_faithful (sheafCompose J F) (sheafToPresheaf _ _)
 
+def sheafComposeFullyFaithful (hF : F.FullyFaithful) : (sheafCompose J F).FullyFaithful :=
+  (sheafComposeCompSheafToPresheafFullyFaithful J hF).ofCompFaithful
+
 instance [F.ReflectsIsomorphisms] : (sheafCompose J F).ReflectsIsomorphisms where
   reflects {G₁ G₂} f _ := by
     rw [← isIso_iff_of_reflects_iso _ (sheafToPresheaf _ _),
       ← isIso_iff_of_reflects_iso _ ((whiskeringRight Cᵒᵖ A B).obj F)]
     change IsIso ((sheafToPresheaf _ _).map ((sheafCompose J F).map f))
     infer_instance
-
-variable {F G}
 
 /--
 If `η : F ⟶ G` is a natural transformation then we obtain a morphism of functors

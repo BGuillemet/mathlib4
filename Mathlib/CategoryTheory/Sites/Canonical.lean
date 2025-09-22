@@ -34,7 +34,7 @@ equivalently it is subcanonical iff every representable presheaf is a sheaf.
 -/
 
 
-universe v u
+universe w v u
 
 namespace CategoryTheory
 
@@ -243,6 +243,21 @@ def yoneda [J.Subcanonical] : C ⥤ Sheaf J (Type v) where
     apply Subcanonical.isSheaf_of_isRepresentable⟩
   map f := ⟨CategoryTheory.yoneda.map f⟩
 
+/-- Variant of the Yoneda embedding which allows a raise in the universe level
+for the category of types. -/
+@[pp_with_univ, simps!]
+def uliftYoneda [J.Subcanonical] : C ⥤ Sheaf J (Type max v w) :=
+  J.yoneda ⋙ sheafCompose J uliftFunctor.{w}
+
+/-- If `C` is a category with `[Category.{max w v} C]`, this is the isomorphism
+`uliftYoneda.{w} (C := C) ≅ yoneda`. -/
+@[simps!]
+def uliftYonedaIsoYoneda {C : Type u} [Category.{max w v} C] (J : GrothendieckTopology C)
+    [J.Subcanonical] :
+    GrothendieckTopology.uliftYoneda.{w} J (C := C) ≅ J.yoneda :=
+  NatIso.ofComponents (fun _ => (fullyFaithfulSheafToPresheaf J _).preimageIso
+    (NatIso.ofComponents (fun _ ↦ Equiv.ulift.toIso)))
+
 variable [Subcanonical J]
 
 /--
@@ -253,6 +268,12 @@ def yonedaCompSheafToPresheaf :
     J.yoneda ⋙ sheafToPresheaf J (Type v) ≅ CategoryTheory.yoneda :=
   Iso.refl _
 
+/-- A variant of `yonedaCompSheafToPresheaf` with a raise in the universe level. -/
+def uliftYonedaCompSheafToPresheaf :
+    GrothendieckTopology.uliftYoneda.{w} J ⋙ sheafToPresheaf J (Type max v w) ≅
+      CategoryTheory.yoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{w} :=
+  Iso.refl _
+
 /-- The yoneda functor into the sheaf category is fully faithful -/
 def yonedaFullyFaithful : (J.yoneda).FullyFaithful :=
   Functor.FullyFaithful.ofCompFaithful (G := sheafToPresheaf J (Type v)) Yoneda.fullyFaithful
@@ -260,6 +281,14 @@ def yonedaFullyFaithful : (J.yoneda).FullyFaithful :=
 instance : (J.yoneda).Full := (J.yonedaFullyFaithful).full
 
 instance : (J.yoneda).Faithful := (J.yonedaFullyFaithful).faithful
+
+/-- A variant of `yonedaFullyFaithful` with a raise in the universe level. -/
+def uliftYonedaFullyFaithful : (GrothendieckTopology.uliftYoneda.{w} J).FullyFaithful :=
+  J.yonedaFullyFaithful.comp (sheafComposeFullyFaithful J fullyFaithfulULiftFunctor)
+
+instance : (J.uliftYoneda).Full := (J.uliftYonedaFullyFaithful).full
+
+instance : (J.uliftYoneda).Faithful := (J.uliftYonedaFullyFaithful).faithful
 
 section YonedaLemma
 
@@ -302,56 +331,46 @@ def largeCurriedYonedaLemma :
 
 section
 
-universe w
+/-- A variant of `yonedaEquiv` with a raise in the universe level. -/
+@[simps! -isSimp]
+def uliftYonedaEquiv {X : C} {F : Sheaf J (Type max v w)} :
+    (J.uliftYoneda.obj X ⟶ F) ≃ F.val.obj (op X) :=
+  Equiv.trans homEquiv CategoryTheory.uliftYonedaEquiv
 
-variable [HasSheafCompose J uliftFunctor.{w}]
+attribute [simp] GrothendieckTopology.uliftYonedaEquiv_symm_apply_val_app
 
-/-- A variant of `yonedaCompSheafToPresheaf` with heterogeneous universes. -/
-def yonedaCompSheafComposeUliftFunctorCompSheafToPresheaf :
-    J.yoneda ⋙ sheafCompose J uliftFunctor.{w} ⋙ sheafToPresheaf J (Type max v w) ≅
-      CategoryTheory.yoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{w} :=
-  Iso.refl _
-
-/-- A variant of `yonedaEquiv` with heterogeneous universes. -/
-def yonedaCompUliftFunctorEquiv (F : Sheaf J (Type max v w)) (X : C) :
-    ((sheafCompose J uliftFunctor).obj (J.yoneda.obj X) ⟶ F) ≃ F.val.obj (op X) :=
-  Equiv.trans homEquiv (CategoryTheory.yonedaCompUliftFunctorEquiv F.val X)
-
-theorem yonedaCompUliftFunctorEquiv_apply {X : C} {F : Sheaf J (Type max v w)}
-    (f : (sheafCompose J uliftFunctor).obj (J.yoneda.obj X) ⟶ F) :
-    J.yonedaCompUliftFunctorEquiv F X f = f.val.app (op X) (ULift.up (𝟙 X)) :=
-  rfl
-
-@[simp]
-theorem yonedaCompUliftFunctorEquiv_symm_app_apply {X : C} {F : Sheaf J (Type max v w)}
-    (x : F.val.obj (op X)) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
-    ((J.yonedaCompUliftFunctorEquiv F X).symm x).val.app Y (ULift.up f) = F.val.map f.op x :=
-  rfl
-
-lemma yonedaCompUliftFunctorEquiv_naturality {X Y : C} {F : Sheaf J (Type max v w)}
-    (f : (sheafCompose J uliftFunctor).obj (J.yoneda.obj X) ⟶ F) (g : Y ⟶ X) :
-    F.val.map g.op (J.yonedaCompUliftFunctorEquiv F X f) =
-      J.yonedaCompUliftFunctorEquiv F Y
-      ((sheafCompose J uliftFunctor).map (J.yoneda.map g) ≫ f) := by
-  change (f.val.app (op X) ≫ F.val.map g.op) _ = f.val.app (op Y) _
+lemma uliftYonedaEquiv_naturality {X Y : C} {F : Sheaf J (Type max v w)}
+    (f : J.uliftYoneda.obj X ⟶ F) (g : Y ⟶ X) :
+    F.val.map g.op (J.uliftYonedaEquiv f) = J.uliftYonedaEquiv (J.uliftYoneda.map g ≫ f) := by
+  change (f.val.app (op X) ≫ F.val.map g.op) { down := 𝟙 X } = f.val.app (op Y) { down := 𝟙 Y ≫ g }
   rw [← f.val.naturality]
+  unfold uliftYoneda
   simp
 
-lemma yonedaCompUliftFunctorEquiv_comp {X : C} {F G : Sheaf J (Type max v w)}
+lemma uliftYonedaEquiv_comp {X : C} {F G : Sheaf J (Type max v w)}
     (α : (sheafCompose J uliftFunctor).obj (J.yoneda.obj X) ⟶ F) (β : F ⟶ G) :
-    J.yonedaCompUliftFunctorEquiv _ _ (α ≫ β) = β.val.app _ (J.yonedaCompUliftFunctorEquiv _ _ α) :=
+    J.uliftYonedaEquiv (α ≫ β) = β.val.app _ (J.uliftYonedaEquiv α) :=
   rfl
 
-/-- A variant of the curried version of the Yoneda lemma with heterogeneous universes. -/
-def largeCurriedYonedaCompUliftFunctorLemma :
-    J.yoneda.op ⋙ (sheafCompose J uliftFunctor.{w}).op ⋙ coyoneda ≅
+/- @[reassoc]
+lemma uliftYonedaEquiv_symm_map {X Y : Cᵒᵖ} (f : X ⟶ Y) {F : Sheaf J (Type max v w)}
+    (t : F.val.obj X) :
+    J.uliftYonedaEquiv.symm (F.val.map f t) =
+      J.uliftYoneda.map f.unop ≫ J.uliftYonedaEquiv.symm t := by
+  obtain ⟨u, rfl⟩ := J.uliftYonedaEquiv.surjective t
+  rw [J.uliftYonedaEquiv_naturality]
+  simp -/
+
+/-- A variant of the curried version of the Yoneda lemma with a raise in the universe level. -/
+def largeCurriedUliftYonedaLemma :
+    J.uliftYoneda.op ⋙ coyoneda ≅
       evaluation Cᵒᵖ (Type max v w) ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u}
       ⋙ (whiskeringLeft _ _ _).obj (sheafToPresheaf _ _) :=
   ((isoWhiskerLeft (J.yoneda.op ⋙ (sheafCompose J _).op)
     sheafToPresheafCompCoyonedaCompWhiskeringLeftSheafToPresheaf.symm).trans
-    (isoWhiskerRight (NatIso.op (J.yonedaCompSheafComposeUliftFunctorCompSheafToPresheaf.symm))
+    (isoWhiskerRight (NatIso.op (J.uliftYonedaCompSheafToPresheaf.symm))
     (_ ⋙ (whiskeringLeft _ _ _).obj _))).trans
-    (isoWhiskerRight CategoryTheory.largeCurriedYonedaCompUliftFunctorLemma
+    (isoWhiskerRight CategoryTheory.largeCurriedUliftYonedaLemma
     ((whiskeringLeft _ _ _).obj _))
 
 end

@@ -294,12 +294,18 @@ lemma limitOpIsoOpColimit_hom_comp_ι (F : J ⥤ C) [HasColimit F] (j : J) :
     (limitOpIsoOpColimit F).hom ≫ (colimit.ι F j).op = limit.π F.op (op j) := by
   simp [← Iso.eq_inv_comp]
 
+lemma colimit.hom_ext' {F : J ⥤ C} [HasColimit F] {X : Cᵒᵖ} {f f' : X ⟶ op (colimit F)}
+    (w : ∀ (j : J), f ≫ (colimit.ι F j).op = f' ≫ (colimit.ι F j).op) : f = f' := by
+  refine Quiver.Hom.unopEquiv.injective (colimit.hom_ext fun j => Quiver.Hom.opEquiv.injective ?_)
+  simpa only [op_unop, op_comp, Quiver.Hom.op_unop] using w j
+
 /-- A functorial version of `limitOpIsoOpColimit`. -/
 def opHomCompLimNatIsoColimOp [HasColimitsOfShape J C] [HasLimitsOfShape Jᵒᵖ Cᵒᵖ] :
     Functor.opHom J C ⋙ lim ≅ colim.op := by
-  refine NatIso.ofComponents (fun F => limitOpIsoOpColimit F.unop) fun {F G} f => ?_
+  refine NatIso.ofComponents (fun F => limitOpIsoOpColimit F.unop)
+      fun {F G} f => colimit.hom_ext' fun j => ?_
+  rw [Category.assoc, Category.assoc, op_map, colim_map, ← op_comp]
   simp
-  sorry
 
 /-- The limit of `F.leftOp` is the unopposite of `colimit F`. -/
 def limitLeftOpIsoUnopColimit (F : J ⥤ Cᵒᵖ) [HasColimit F] :
