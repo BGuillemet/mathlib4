@@ -229,6 +229,18 @@ variable (C) in
 @[simps!]
 def unopId : (𝟭 Cᵒᵖ).unop ≅ 𝟭 C := Iso.refl _
 
+/-- Functoriality of `Functor.opComp` with respect to `F`. -/
+def whiskeringRightObjOpCompOpHom (G : D ⥤ E) :
+    ((whiskeringRight C D E).obj G).op ⋙ opHom C E ≅
+      opHom C D ⋙ (whiskeringRight Cᵒᵖ Dᵒᵖ Eᵒᵖ).obj G.op :=
+  NatIso.ofComponents fun F => opComp F.unop G
+
+/-- Functoriality of `Functor.opComp` with respect to `G`. -/
+def whiskeringLeftObjOpCompOpHom (F : C ⥤ D) :
+    ((whiskeringLeft C D E).obj F).op ⋙ opHom C E ≅
+      opHom D E ⋙ (whiskeringLeft Cᵒᵖ Dᵒᵖ Eᵒᵖ).obj F.op :=
+  NatIso.ofComponents fun G => opComp F G.unop
+
 end Compositions
 
 /--
