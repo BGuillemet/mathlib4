@@ -113,6 +113,12 @@ def largeCurriedYonedaLemma :
     (_ ⋙ (whiskeringLeft _ _ _).obj _))).trans
     (isoWhiskerRight CategoryTheory.largeCurriedYonedaLemma ((whiskeringLeft _ _ _).obj _))
 
+@[simp]
+lemma largeCurriedYonedaLemma_app_app (X : C) (F : Sheaf J (Type v)) :
+    (J.largeCurriedYonedaLemma.app (op X)).app F
+    = (J.yonedaEquiv.trans Equiv.ulift.symm).toIso :=
+  rfl
+
 /-- A version of `yonedaEquiv` for `uliftYoneda`. -/
 def uliftYonedaEquiv {X : C} {F : Sheaf J (Type (max v v'))} :
     ((uliftYoneda.{v'} J).obj X ⟶ F) ≃ F.val.obj (op X) :=
@@ -207,5 +213,11 @@ def largeCurriedUliftYonedaLemma :
     (_ ⋙ (whiskeringLeft _ _ _).obj _))).trans
     (isoWhiskerRight CategoryTheory.largeCurriedUliftYonedaLemma
     ((whiskeringLeft _ _ _).obj _))
+
+@[simp]
+lemma largeCurriedUliftYonedaLemma_app_app (X : C) (F : Sheaf J (Type (max v v'))) :
+    (J.largeCurriedUliftYonedaLemma.app (op X)).app F
+    = (J.uliftYonedaEquiv.trans Equiv.ulift.symm).toIso :=
+  rfl
 
 end CategoryTheory.GrothendieckTopology
