@@ -159,50 +159,43 @@ noncomputable def coyonedaOpCompHausToCondensedFiniteCoproductNatIso {n : ℕ}
     ((preservesLimitIso coyoneda (S ⋙ compHausToCondensed).op).symm.trans
     (coyoneda.mapIso (limitOpIsoOpColimit _))))))
 
-lemma fjkezljf (S : CompHaus) (f g : S ⟶ S) (h : S ≅ S) (e : f = g ≫ h.inv) : f ≫ h.hom = g := by
-  exact (Iso.eq_comp_inv h).mp e
-
+@[simp]
 lemma coyonedaOpCompHausToCondensedFiniteCoproductNatIso_hom {n : ℕ}
     (S : Discrete (Fin n) ⥤ CompHaus.{u}) :
     (coyonedaOpCompHausToCondensedFiniteCoproductNatIso S).hom
     = coyoneda.map (colimit.post S compHausToCondensed).op := by
   unfold coyonedaOpCompHausToCondensedFiniteCoproductNatIso
-  simp [← Category.assoc]
-  rw [← mapIso_hom, ← Iso.eq_comp_inv, Iso.comp_inv_eq, ← Iso.eq_comp_inv]
+  simp only [comp_obj, op_obj, whiskeringLeft_obj_obj, mapIso_symm, Iso.trans_hom, Iso.app_hom,
+    Iso.symm_hom, mapIso_inv, Functor.comp_map, whiskeringLeft_obj_map, ← Category.assoc]
+  rw [← Iso.eq_comp_inv, Iso.comp_inv_eq, ← Iso.eq_comp_inv]
   apply limit.hom_ext fun j => ?_
-  simp
+  simp only [comp_obj, op_obj, whiskeringLeft_obj_obj, Category.assoc, mapIso_inv]
   rw [sheafToPresheafCompEvaluationLimitIso_hom_π]
-  simp
   ext X (f : compHausToCondensed.obj (colimit S) ⟶ X)
-  simp
-  have : (condensedYonedaLemma.hom.app (Opposite.op (colimit S))).app X f
+  have h₁ : (condensedYonedaLemma.hom.app (Opposite.op (colimit S))).app X f
       = condensedYonedaEquiv f := rfl
-  --  = f.val.app (Opposite.op (colimit S)) { down := 𝟙 (colimit S) } := rfl
-  rw [this]
-  have : X.val.map (limit.π S.op j) (X.val.map (limitOpIsoOpColimit S).inv (condensedYonedaEquiv f))
-      = condensedYonedaEquiv (compHausToCondensed.map (colimit.ι S j.unop) ≫ f) := by
-    change ((f.val.app (Opposite.op (colimit S)) ≫ X.val.map (limitOpIsoOpColimit S).inv) ≫ X.val.map (limit.π S.op j)) { down := 𝟙 (colimit S) }
-      = f.val.app (S.op.obj j) ((compHausToCondensed.map (colimit.ι S j.unop)).val.app (S.op.obj j) { down := 𝟙 (S.obj j.unop)})
-    rw [← f.val.naturality, Category.assoc, ← f.val.naturality]
-    sorry
-  have : (sheafToPresheafCompEvaluationLimitIso S.op).hom.app X
+  have h₂ : X.val.map (limit.π S.op j)
       (X.val.map (limitOpIsoOpColimit S).inv (condensedYonedaEquiv f))
-      = (sheafToPresheafCompEvaluationObjIso S.op X).hom
-      (X.val.map (limitOpIsoOpColimit S).inv (condensedYonedaEquiv f)) :=
+      = condensedYonedaEquiv (compHausToCondensed.map (colimit.ι S j.unop) ≫ f) := by
+    change (f.val.app _ ≫ _ ≫ _) _ = _
+    rw [← X.val.map_comp, ← f.val.naturality, limitOpIsoOpColimit_inv_comp_π]
     rfl
-
-  -- refine colimit.hom_ext (fun j => ?_)
-  -- simp
-  -- change ((limitOpIsoOpColimit (S ⋙ compHausToCondensed)).hom ≫ (colimit.ι _ j).op).unop ≫ _ = _
-  -- simp
-  -- rw [sheafToPresheafCompEvaluationLimitIso_app]
-
-  -- rw [this, condensedYonedaEquiv, (coherentTopology CompHaus).uliftYonedaEquiv_apply f]
-
-
-  -- ext T t
-  -- simp
-  sorry
+  simp only [comp_obj, sheafToPresheaf_obj, evaluation_obj_obj, Opposite.op_unop, op_obj,
+    Functor.comp_map, whiskeringLeft_obj_map, FunctorToTypes.comp, whiskerLeft_app,
+    evaluation_map_app, coyoneda_map_app, Quiver.Hom.unop_op]
+  change _ = ((preservesLimitIso coyoneda (S ⋙ compHausToCondensed).op).hom
+    ≫ (HasLimit.isoOfNatIso (S.op.isoWhiskerLeft condensedYonedaLemma.symm)).inv
+    ≫ limit.π _ j).app X _
+  rw [h₁, h₂, HasLimit.isoOfNatIso_inv_π]
+  change _ = (((preservesLimitIso coyoneda (S ⋙ compHausToCondensed).op).hom
+    ≫ limit.π _ j)
+    ≫ (S.op.isoWhiskerLeft condensedYonedaLemma.symm).inv.app j).app X _
+  rw [preservesLimitIso_hom_π]
+  simp only [comp_obj, op_obj, whiskeringLeft_obj_obj, sheafToPresheaf_obj, evaluation_obj_obj,
+    isoWhiskerLeft_inv, Iso.symm_inv, whiskerLeft_app, FunctorToTypes.comp, coyoneda_map_app]
+  rw [← Category.assoc, ← unop_comp, limitOpIsoOpColimit_inv_comp_π, Quiver.Hom.unop_op,
+    colimit.ι_post_assoc]
+  rfl
 
 noncomputable def coyonedaOpCompHausToCondensedFiniteCoproductNatIso' {n : ℕ}
     (S : Fin n → CompHaus.{u}) :
@@ -217,19 +210,15 @@ noncomputable def compHausToCondensedFiniteCoproductIso {n : ℕ}
   (Coyoneda.fullyFaithful.preimageIso
     (coyonedaOpCompHausToCondensedFiniteCoproductNatIso S).symm).unop
 
-lemma compHausToCondensedFiniteCoproductIso_ι_inv {n : ℕ} (S : Discrete (Fin n) ⥤ CompHaus.{u})
-    (j : Discrete (Fin n)) :
-    colimit.ι _ j ≫ (compHausToCondensedFiniteCoproductIso S).inv
-    = compHausToCondensed.map (colimit.ι S j) := by
-  unfold compHausToCondensedFiniteCoproductIso
-  simp
-  sorry
-
+@[simp]
 lemma compHausToCondensedFiniteCoproductIso_inv {n : ℕ} (S : Discrete (Fin n) ⥤ CompHaus.{u}) :
     (compHausToCondensedFiniteCoproductIso S).inv = colimit.post S compHausToCondensed := by
-  refine colimit.hom_ext fun j => ?_
-  rw [colimit.ι_post]
-  sorry
+  simp [compHausToCondensedFiniteCoproductIso]
+
+instance {n : ℕ} (S : Discrete (Fin n) ⥤ CompHaus.{u}) :
+    IsIso (colimit.post S compHausToCondensed) := by
+  rw [← compHausToCondensedFiniteCoproductIso_inv]
+  infer_instance
 
 noncomputable def compHausToCondensedFiniteCoproductIso' {n : ℕ} (S : Fin n → CompHaus.{u}) :
     compHausToCondensed.obj (∐ S) ≅ ∐ (compHausToCondensed.obj ∘ S) :=
@@ -253,23 +242,13 @@ noncomputable def compHausToCondensedFiniteCoproductIso'' {n : ℕ} :
   rw [← whiskeringRight_obj_comp]
   rfl
 
-lemma truc {n : ℕ} (S : Discrete (Fin n) ⥤ CompHaus.{u}) (j : Discrete (Fin n)) :
-    compHausToCondensed.map (colimit.ι S j)
-    = colimit.ι (S ⋙ compHausToCondensed) j ≫ (compHausToCondensedFiniteCoproductIso S).inv := by
-  sorry
+instance : PreservesFiniteCoproducts compHausToCondensed.{u} where
+  preserves _ :=  { preservesColimit := preservesColimit_of_isIso_post _ _ }
 
-instance {n : ℕ} : PreservesColimitsOfShape (Discrete (Fin n)) compHausToCondensed.{u} where
-  preservesColimit {S} := by
-    refine preservesColimit_of_preserves_colimit_cocone (colimit.isColimit S) ?_
-    sorry
-
-instance : PreservesFiniteCoproducts compHausToCondensed where
-  preserves := inferInstance
-
-/- noncomputable def compHausToCondensedIsoYonedaCompUliftFunctorCompPresheafToSheaf :
-    compHausToCondensed ≅ yoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u + 1} ⋙
-      presheafToSheaf  _ _ :=
-  sorry -/
+lemma preservesColimitIso_compHausToCondensed {n : ℕ} (S : Discrete (Fin n) ⥤ CompHaus.{u}) :
+    preservesColimitIso compHausToCondensed.{u} S = compHausToCondensedFiniteCoproductIso S := by
+  refine Iso.symm_eq_iff.1 (Iso.ext (colimit.hom_ext ?_))
+  simp
 
 theorem isQuasicompact_iff_compHaus_cover (X : CondensedSet.{u}) :
     X.Quasicompact ↔ ∃ S : CompHaus.{u}, ∃ f : compHausToCondensed.obj S ⟶ X, Epi f := by
