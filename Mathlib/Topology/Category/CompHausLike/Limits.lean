@@ -181,6 +181,10 @@ noncomputable instance {P' : TopCat.{u} → Prop}
     inferInstanceAs (PreservesFiniteCoproducts (compHausLikeToTop _))
   exact preservesFiniteCoproducts_of_reflects_of_preserves (toCompHausLike h) (compHausLikeToTop P')
 
+instance (P) [HasExplicitFiniteCoproducts.{0} P] :
+    PreservesFiniteCoproducts (forget (CompHausLike P)) :=
+  inferInstanceAs (PreservesFiniteCoproducts (compHausLikeToTop P ⋙ forget TopCat))
+
 end FiniteCoproducts
 
 section Pullbacks
