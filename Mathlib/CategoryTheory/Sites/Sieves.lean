@@ -169,14 +169,6 @@ lemma ofArrows.mk' {ι : Type*} {Y : ι → C} {f : ∀ i, Y i ⟶ X} {Z : C} {g
   subst hg
   constructor
 
-theorem ofArrows_empty : (ofArrows (X := X) Empty.elim Empty.instIsEmpty.elim) = fun _ => ∅ := by
-  funext Y
-  ext g
-  constructor
-  · rintro ⟨h⟩
-    exact Empty.elim h
-  · rintro ⟨h⟩
-
 theorem ofArrows_pUnit : (ofArrows _ fun _ : PUnit => f) = singleton f := by
   funext Y
   ext g
