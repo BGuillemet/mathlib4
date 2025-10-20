@@ -266,10 +266,9 @@ theorem isQuasicompact_iff_compHaus_cover (X : CondensedSet.{u}) :
         ≅ (yoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u + 1} ⋙ presheafToSheaf _ _).obj
         (e.invFun j).val.unop.fst.unop
       apply Iso.app
-      exact (isoWhiskerLeft (_ ⋙ sheafCompose _ _) (sheafificationNatIso _ _)).trans
-        (isoWhiskerRight
-        (coherentTopology CompHaus).uliftYonedaCompSheafToPresheaf
-        (presheafToSheaf _ _))
+      exact isoWhiskerLeft (_ ⋙ sheafCompose _ _) (sheafificationNatIso _ _) ≪≫
+        isoWhiskerRight (coherentTopology CompHaus).uliftYonedaCompSheafToPresheaf
+        (presheafToSheaf _ _)
     use ((compHausToCondensedFiniteCoproductIso' _).hom
       ≫ (Sigma.mapIso this).hom
       ≫ (Sigma.whiskerEquiv (g := (overYoneda' X.val ⋙ presheafToSheaf _ _).obj ∘ Subtype.val)

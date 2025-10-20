@@ -8,6 +8,8 @@ import Mathlib.CategoryTheory.Sites.Canonical
 import Mathlib.CategoryTheory.Limits.Types.Colimits
 import Mathlib.CategoryTheory.Sites.Adjunction
 import Mathlib.CategoryTheory.Sites.LeftExact
+import Mathlib.CategoryTheory.Sites.Coherent.Basic
+import Mathlib.CategoryTheory.Limits.FilteredColimitCommutesProduct
 
 /-!
 # Quasicompact and quasiseparated sheaves
@@ -33,10 +35,31 @@ structure Quasicompact (F : Sheaf J A) : Prop where
   exists_finset_epi : ∀ {I : Type v'} {G : I → Sheaf J A} (f : ∐ G ⟶ F) [Epi f],
     ∃ J : Finset I, Epi ((Limits.Sigma.map' Subtype.val (fun (j : J) => 𝟙 (G j))) ≫ f)
 
+-- lemma idk {F : Sheaf J A} (hF : Quasicompact F) {I : Type v'} {G : I → Sheaf J A}
+--     {S : (i : I) → G i ⟶ F} (hS : Sieve.ofArrows G S ∈ canonicalTopology (Sheaf J A) F) :
+--     ∃ I' : Finset I,
+--       Sieve.ofArrows (G ∘ Subtype.val) (fun i : I' => S i) ∈ canonicalTopology (Sheaf J A) F := by
+--   sorry
+
 lemma exists_finset_epi (F : Sheaf J A) (hF : Quasicompact F) {I : Type v'} {G : I → Sheaf J A}
     (f : ∐ G ⟶ F) [Epi f] :
     ∃ J : Finset I, Epi ((Limits.Sigma.map' Subtype.val (fun (j : J) => 𝟙 (G j))) ≫ f) :=
   hF.exists_finset_epi f
+
+-- def test (I : Type) (X : I → Type) (Y Z : Type) (f : (i : I) → X i ⟶ Z) (g : Y ⟶ Z) :
+--     Limits.pullback (Limits.Sigma.desc f) g ≃ ∐ fun i : I => Limits.pullback (f i) g where
+--   toFun :=
+
+variable (I : Type)
+
+lemma quasicompact_of_epi_quasicompact [Limits.HasPullbacks A] {F F' : Sheaf J A} (f : F' ⟶ F)
+    [Epi f] (hF' : F'.Quasicompact) : F.Quasicompact where
+  exists_finset_epi {I G} g [Epi g] := by
+    set G' := fun i : I => Limits.pullback (Limits.Sigma.ι G i ≫ g) f
+    set g' := Limits.Sigma.desc fun i => Limits.pullback.snd (Limits.Sigma.ι G i ≫ g) f
+    have : Epi g' := by
+      sorry
+    sorry
 
 lemma quasicompact_of_finite_presieve_quasicompact [Limits.HasPullbacks A] {F : Sheaf J A}
     {I : Type v'} (hI : Fintype I) {G : I → Sheaf J A} (hG : ∀ i : I, Quasicompact (G i))
