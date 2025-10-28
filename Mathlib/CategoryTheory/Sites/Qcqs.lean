@@ -10,6 +10,8 @@ import Mathlib.CategoryTheory.Sites.Adjunction
 import Mathlib.CategoryTheory.Sites.LeftExact
 import Mathlib.CategoryTheory.Sites.Coherent.Basic
 import Mathlib.CategoryTheory.Limits.FilteredColimitCommutesProduct
+import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Pullbacks
+import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Products
 
 /-!
 # Quasicompact and quasiseparated sheaves
@@ -21,9 +23,61 @@ or qcqs sheaves.
 
 universe u v u' v' w
 
-namespace CategoryTheory.Sheaf
+section
 
-open Category
+open CategoryTheory Limits
+
+variable {I : Type} {C : Type u} [Category.{v} C]
+
+noncomputable def Types.coproductPullbackEquiv {X : I → Type} {Y Z : Type} (f : (i : I) → X i ⟶ Z)
+    (g : Y ⟶ Z) : ∐ (fun i : I => pullback (f i) g) ≃ pullback (Sigma.desc f) g := by
+  refine (Types.coproductIso _).toEquiv.trans
+    ((Equiv.sigmaCongrRight (fun _ => (Types.pullbackIsoPullback _ _).toEquiv)).trans ?_)
+  refine Equiv.trans ?_ (((Types.pullbackIsoPullback _ _).symm
+    ≪≫ asIso (pullback.map (fun ⟨i, x⟩ => f i x) g (Sigma.desc f) g
+    (Types.coproductIso _).inv (𝟙 _) (𝟙 _) (by ext ⟨_, _⟩; simp) rfl)).toEquiv)
+  exact {
+    toFun := fun ⟨j, ⟨x, y⟩, h⟩ => ⟨⟨⟨j, x⟩, y⟩, h⟩
+    invFun := fun ⟨⟨⟨j, x⟩, y⟩, h⟩ => ⟨j, ⟨⟨x, y⟩, h⟩⟩ }
+
+@[reassoc (attr := simp)]
+theorem Types.ι_coproductPullbackEquiv {X : I → Type} {Y Z : Type} (f : (i : I) → X i ⟶ Z)
+    (g : Y ⟶ Z) (j : I) :
+    Sigma.ι (fun i => pullback (f i) g) j ≫ Types.coproductPullbackEquiv f g
+      = pullback.map (f j) g (Sigma.desc f) g (Sigma.ι X j) (𝟙 _) (𝟙 _) (by simp) rfl := by
+  ext <;> (unfold coproductPullbackEquiv; simp)
+
+noncomputable def FunctorToTypes.coproductPullbackIso (X : I → C ⥤ Type) (Y Z : C ⥤ Type)
+    (f : (i : I) → X i ⟶ Z) (g : Y ⟶ Z) :
+    (∐ fun i : I => pullback (f i) g) ≅ pullback (Sigma.desc f) g := by
+  refine NatIso.ofComponents (fun c => ?_) fun h => ?_
+  exact sigmaObjIso _ _ ≪≫ Sigma.mapIso (fun i => pullbackObjIso (f i) g c)
+    ≪≫ (Types.coproductPullbackEquiv (fun i => (f i).app c) (g.app c)).toIso
+    ≪≫ asIso (pullback.map _ _ _ _ (sigmaObjIso _ _).inv (𝟙 _) (𝟙 _) (by ext _ : 1; simp) rfl)
+    ≪≫ (pullbackObjIso _ _ _).symm
+  unfold sigmaObjIso pullbackObjIso
+  simp only [Iso.trans_inv, Iso.trans_symm, Iso.trans_assoc, Iso.trans_hom, Functor.mapIso_hom,
+    colim_map, Equiv.toIso_hom, asIso_hom, Iso.symm_hom, HasLimit.lift_isoOfNatIso_inv_assoc,
+    PullbackCone.mk_pt, colimit_map_colimitObjIsoColimitCompEvaluation_hom_assoc, Category.assoc,
+    limitObjIsoLimitCompEvaluation_inv_limit_map, limit.lift_map_assoc, Cones.postcompose_obj_pt,
+    Iso.cancel_iso_hom_left]
+  simp only [← Category.assoc, Iso.cancel_iso_inv_right]
+
+  apply colimit.hom_ext fun j => ?_
+  simp
+
+  simp only [← Category.assoc]
+  simp
+  apply limit.hom_ext fun k => ?_
+  simp
+
+  show _ ≫ _ ≫ (colimit.ι (Discrete.functor fun _ => pullback _ (g.app _)) j ≫ (Types.coproductPullbackEquiv _ _).toFun) ≫ _ = _
+  show _ ≫ _ ≫ (Sigma.ι _ _ ≫ _) ≫ _ = _
+  rw [Types.ι_coproductPullbackEquiv]
+
+end
+
+namespace CategoryTheory.Sheaf
 
 variable {C : Type u} [Category.{v} C] {J : GrothendieckTopology C}
   {A : Type u'} [Category.{v'} A] [HasWeakSheafify J A] [Limits.HasColimits A]
@@ -45,10 +99,6 @@ lemma exists_finset_epi (F : Sheaf J A) (hF : Quasicompact F) {I : Type v'} {G :
     (f : ∐ G ⟶ F) [Epi f] :
     ∃ J : Finset I, Epi ((Limits.Sigma.map' Subtype.val (fun (j : J) => 𝟙 (G j))) ≫ f) :=
   hF.exists_finset_epi f
-
--- def test (I : Type) (X : I → Type) (Y Z : Type) (f : (i : I) → X i ⟶ Z) (g : Y ⟶ Z) :
---     Limits.pullback (Limits.Sigma.desc f) g ≃ ∐ fun i : I => Limits.pullback (f i) g where
---   toFun :=
 
 variable (I : Type)
 
