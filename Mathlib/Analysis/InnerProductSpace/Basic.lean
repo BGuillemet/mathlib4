@@ -14,8 +14,8 @@ This file proves many basic properties of inner product spaces (real or complex)
 
 ## Main results
 
-- `inner_mul_inner_self_le`: the Cauchy-Schwartz inequality (one of many variants).
-- `norm_inner_eq_norm_iff`: the equality criteion in the Cauchy-Schwartz inequality (also in many
+- `inner_mul_inner_self_le`: the Cauchy-Schwarz inequality (one of many variants).
+- `norm_inner_eq_norm_iff`: the equality criterion in the Cauchy-Schwarz inequality (also in many
   variants).
 - `inner_eq_sum_norm_sq_div_four`: the polarization identity.
 
@@ -302,8 +302,14 @@ variable (𝕜)
 theorem ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y := by
   rw [← sub_eq_zero, ← @inner_self_eq_zero 𝕜, inner_sub_right, sub_eq_zero, h (x - y)]
 
+theorem ext_iff_inner_left {x y : E} : x = y ↔ ∀ v, ⟪v, x⟫ = ⟪v, y⟫ :=
+  ⟨fun h _ ↦ h ▸ rfl, ext_inner_left 𝕜⟩
+
 theorem ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y := by
   rw [← sub_eq_zero, ← @inner_self_eq_zero 𝕜, inner_sub_left, sub_eq_zero, h (x - y)]
+
+theorem ext_iff_inner_right {x y : E} : x = y ↔ ∀ v, ⟪x, v⟫ = ⟪y, v⟫ :=
+  ⟨fun h _ ↦ h ▸ rfl, ext_inner_right 𝕜⟩
 
 variable {𝕜}
 
@@ -602,7 +608,7 @@ theorem inner_sum_smul_sum_smul_of_sum_eq_zero {ι₁ : Type*} {s₁ : Finset ι
       (-∑ i₁ ∈ s₁, ∑ i₂ ∈ s₂, w₁ i₁ * w₂ i₂ * (‖v₁ i₁ - v₂ i₂‖ * ‖v₁ i₁ - v₂ i₂‖)) / 2 := by
   simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
     real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two, ← div_sub_div_same,
-    ← div_add_div_same, mul_sub_left_distrib, left_distrib, Finset.sum_sub_distrib,
+    add_div, mul_sub_left_distrib, left_distrib, Finset.sum_sub_distrib,
     Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.sum_mul, h₁, h₂, zero_mul,
     mul_zero, Finset.sum_const_zero, zero_add, zero_sub, Finset.mul_sum, neg_div,
     Finset.sum_div, mul_div_assoc, mul_assoc]
@@ -861,19 +867,19 @@ This is not registered as an instance since
 
 However, it can be used in a proof to obtain a real inner product space structure from a given
 `𝕜`-inner product space structure. -/
--- See note [reducible non instances]
+-- See note [reducible non-instances]
 abbrev InnerProductSpace.rclikeToReal : InnerProductSpace ℝ E :=
   { Inner.rclikeToReal 𝕜 E,
-    NormedSpace.restrictScalars ℝ 𝕜
-      E with
+    NormedSpace.restrictScalars ℝ 𝕜 E with
     norm_sq_eq_re_inner := norm_sq_eq_re_inner
     conj_inner_symm := fun _ _ => inner_re_symm _ _
     add_left := fun x y z => by
-      change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫
-      simp only [inner_add_left, map_add]
+      simp only [Inner.rclikeToReal, inner_add_left, map_add]
     smul_left := fun x y r => by
-      change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫
-      simp only [inner_smul_left, conj_ofReal, re_ofReal_mul] }
+      letI := NormedSpace.restrictScalars ℝ 𝕜 E
+      have : r • x = (r : 𝕜) • x := rfl
+      simp only [Inner.rclikeToReal, this, conj_trivial, inner_smul_left, conj_ofReal,
+        re_ofReal_mul] }
 
 variable {E}
 
