@@ -109,12 +109,28 @@ instance Types.epi_pullback_of_epi_f {X Y Z : Type} (f : X ⟶ Z) (g : Y ⟶ Z) 
   exact ⟨(Limits.Types.pullbackIsoPullback f g).inv ⟨⟨x, y⟩, hx⟩,
     Limits.Types.pullbackIsoPullback_inv_snd_apply _ _ _⟩
 
+instance Types.epi_pullback_of_epi_g {X Y Z : Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi g] :
+    Epi (Limits.pullback.fst f g) := by
+  refine (epi_iff_surjective _).2 (fun x => ?_)
+  obtain ⟨y, hy⟩ := (epi_iff_surjective g).1 inferInstance (f x)
+  exact ⟨(Limits.Types.pullbackIsoPullback f g).inv ⟨⟨x, y⟩, hy.symm⟩,
+    Limits.Types.pullbackIsoPullback_inv_fst_apply _ _ _⟩
+
 instance FunctorToTypes.epi_pullback_of_epi_f {X Y Z : C ⥤ Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi f] :
     Epi (Limits.pullback.snd f g) := by
   have (c : C) : Epi ((Limits.pullback.snd f g).app c) := by
     have : Epi (Limits.pullback.snd (f.app c) (g.app c)) :=
       Types.epi_pullback_of_epi_f _ _
     rw [← Limits.pullbackObjIso_hom_comp_snd]
+    infer_instance
+  exact NatTrans.epi_of_epi_app _
+
+instance FunctorToTypes.epi_pullback_of_epi_g {X Y Z : C ⥤ Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi g] :
+    Epi (Limits.pullback.fst f g) := by
+  have (c : C) : Epi ((Limits.pullback.fst f g).app c) := by
+    have : Epi (Limits.pullback.fst (f.app c) (g.app c)) :=
+      Types.epi_pullback_of_epi_g _ _
+    rw [← Limits.pullbackObjIso_hom_comp_fst]
     infer_instance
   exact NatTrans.epi_of_epi_app _
 
