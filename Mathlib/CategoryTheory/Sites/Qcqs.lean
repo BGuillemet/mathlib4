@@ -75,6 +75,36 @@ noncomputable def FunctorToTypes.coproductPullbackIso (X : I → C ⥤ Type) (Y 
   rw [Types.ι_coproductPullbackEquiv_assoc, Types.ι_coproductPullbackEquiv_assoc]
   cases k with | none => simp | some k => cases k <;> simp
 
+instance Types.epi_pullback_of_epi_f {X Y Z : Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi f] :
+    Epi (pullback.snd f g) := by
+  refine (epi_iff_surjective _).2 (fun y => ?_)
+  obtain ⟨x, hx⟩ := (epi_iff_surjective f).1 inferInstance (g y)
+  exact ⟨(Types.pullbackIsoPullback f g).inv ⟨⟨x, y⟩, hx⟩,
+    Types.pullbackIsoPullback_inv_snd_apply _ _ _⟩
+
+instance Types.epi_pullback_of_epi_g {X Y Z : Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi g] :
+    Epi (pullback.fst f g) := by
+  refine (epi_iff_surjective _).2 (fun x => ?_)
+  obtain ⟨y, hy⟩ := (epi_iff_surjective g).1 inferInstance (f x)
+  exact ⟨(Types.pullbackIsoPullback f g).inv ⟨⟨x, y⟩, hy.symm⟩,
+    Types.pullbackIsoPullback_inv_fst_apply _ _ _⟩
+
+instance FunctorToTypes.epi_pullback_of_epi_f {X Y Z : C ⥤ Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi f] :
+    Epi (pullback.snd f g) := by
+  have (c : C) : Epi ((pullback.snd f g).app c) := by
+    have : Epi (pullback.snd (f.app c) (g.app c)) := Types.epi_pullback_of_epi_f _ _
+    rw [← pullbackObjIso_hom_comp_snd]
+    infer_instance
+  exact NatTrans.epi_of_epi_app _
+
+instance FunctorToTypes.epi_pullback_of_epi_g {X Y Z : C ⥤ Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi g] :
+    Epi (pullback.fst f g) := by
+  have (c : C) : Epi ((pullback.fst f g).app c) := by
+    have : Epi (pullback.fst (f.app c) (g.app c)) := Types.epi_pullback_of_epi_g _ _
+    rw [← pullbackObjIso_hom_comp_fst]
+    infer_instance
+  exact NatTrans.epi_of_epi_app _
+
 end
 
 namespace CategoryTheory.Sheaf
@@ -102,37 +132,9 @@ lemma exists_finset_epi (F : Sheaf J A) (hF : Quasicompact F) {I : Type v'} {G :
 
 variable (I : Type)
 
-instance Types.epi_pullback_of_epi_f {X Y Z : Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi f] :
-    Epi (Limits.pullback.snd f g) := by
-  refine (epi_iff_surjective _).2 (fun y => ?_)
-  obtain ⟨x, hx⟩ := (epi_iff_surjective f).1 inferInstance (g y)
-  exact ⟨(Limits.Types.pullbackIsoPullback f g).inv ⟨⟨x, y⟩, hx⟩,
-    Limits.Types.pullbackIsoPullback_inv_snd_apply _ _ _⟩
-
-instance Types.epi_pullback_of_epi_g {X Y Z : Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi g] :
-    Epi (Limits.pullback.fst f g) := by
-  refine (epi_iff_surjective _).2 (fun x => ?_)
-  obtain ⟨y, hy⟩ := (epi_iff_surjective g).1 inferInstance (f x)
-  exact ⟨(Limits.Types.pullbackIsoPullback f g).inv ⟨⟨x, y⟩, hy.symm⟩,
-    Limits.Types.pullbackIsoPullback_inv_fst_apply _ _ _⟩
-
-instance FunctorToTypes.epi_pullback_of_epi_f {X Y Z : C ⥤ Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi f] :
-    Epi (Limits.pullback.snd f g) := by
-  have (c : C) : Epi ((Limits.pullback.snd f g).app c) := by
-    have : Epi (Limits.pullback.snd (f.app c) (g.app c)) :=
-      Types.epi_pullback_of_epi_f _ _
-    rw [← Limits.pullbackObjIso_hom_comp_snd]
-    infer_instance
-  exact NatTrans.epi_of_epi_app _
-
-instance FunctorToTypes.epi_pullback_of_epi_g {X Y Z : C ⥤ Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi g] :
-    Epi (Limits.pullback.fst f g) := by
-  have (c : C) : Epi ((Limits.pullback.fst f g).app c) := by
-    have : Epi (Limits.pullback.fst (f.app c) (g.app c)) :=
-      Types.epi_pullback_of_epi_g _ _
-    rw [← Limits.pullbackObjIso_hom_comp_fst]
-    infer_instance
-  exact NatTrans.epi_of_epi_app _
+instance epi_pullback_of_epi_f [Limits.HasPullbacks A] {X Y Z : Sheaf J A} (f : X ⟶ Z) (g : Y ⟶ Z)
+    [Epi f] : Epi (Limits.pullback.snd f g) := by
+  sorry
 
 lemma quasicompact_of_epi_quasicompact [Limits.HasPullbacks A] {F F' : Sheaf J A} (f : F' ⟶ F)
     [Epi f] (hF' : F'.Quasicompact) : F.Quasicompact where
