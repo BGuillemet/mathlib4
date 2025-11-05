@@ -12,6 +12,7 @@ import Mathlib.CategoryTheory.Sites.Coherent.Basic
 import Mathlib.CategoryTheory.Limits.FilteredColimitCommutesProduct
 import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Products
+import Mathlib.CategoryTheory.Limits.FunctorCategory.EpiMono
 
 /-!
 # Quasicompact and quasiseparated sheaves
@@ -47,33 +48,32 @@ theorem Types.ι_coproductPullbackEquiv {X : I → Type} {Y Z : Type} (f : (i : 
       = pullback.map (f j) g (Sigma.desc f) g (Sigma.ι X j) (𝟙 _) (𝟙 _) (by simp) rfl := by
   ext <;> (unfold coproductPullbackEquiv; simp)
 
+-- @[reassoc (attr := simp)]
+-- theorem Types.ι_coproductPullbackEquiv' {X : I → Type} {Y Z : Type} (f : (i : I) → X i ⟶ Z)
+--     (g : Y ⟶ Z) (j : Discrete I) :
+--     colimit.ι (Discrete.functor fun i => pullback (f i) g) j ≫ Types.coproductPullbackEquiv f g
+--       = pullback.map (f j.as) g (Sigma.desc f) g (Sigma.ι X j.as) (𝟙 _) (𝟙 _) (by simp) rfl :=
+--   Types.ι_coproductPullbackEquiv _ _ _
+
 noncomputable def FunctorToTypes.coproductPullbackIso (X : I → C ⥤ Type) (Y Z : C ⥤ Type)
     (f : (i : I) → X i ⟶ Z) (g : Y ⟶ Z) :
     (∐ fun i : I => pullback (f i) g) ≅ pullback (Sigma.desc f) g := by
-  refine NatIso.ofComponents (fun c => ?_) fun h => ?_
-  exact sigmaObjIso _ _ ≪≫ Sigma.mapIso (fun i => pullbackObjIso (f i) g c)
+  refine NatIso.ofComponents (fun c =>
+    sigmaObjIso _ _ ≪≫ Sigma.mapIso (fun i => pullbackObjIso (f i) g c)
     ≪≫ (Types.coproductPullbackEquiv (fun i => (f i).app c) (g.app c)).toIso
     ≪≫ asIso (pullback.map _ _ _ _ (sigmaObjIso _ _).inv (𝟙 _) (𝟙 _) (by ext _ : 1; simp) rfl)
-    ≪≫ (pullbackObjIso _ _ _).symm
+    ≪≫ (pullbackObjIso _ _ _).symm)
+    fun h => ?_
   unfold sigmaObjIso pullbackObjIso
-  simp only [Iso.trans_inv, Iso.trans_symm, Iso.trans_assoc, Iso.trans_hom, Functor.mapIso_hom,
-    colim_map, Equiv.toIso_hom, asIso_hom, Iso.symm_hom, HasLimit.lift_isoOfNatIso_inv_assoc,
-    PullbackCone.mk_pt, colimit_map_colimitObjIsoColimitCompEvaluation_hom_assoc, Category.assoc,
-    limitObjIsoLimitCompEvaluation_inv_limit_map, limit.lift_map_assoc, Cones.postcompose_obj_pt,
-    Iso.cancel_iso_hom_left]
-  simp only [← Category.assoc, Iso.cancel_iso_inv_right]
-
-  apply colimit.hom_ext fun j => ?_
-  simp
-
-  simp only [← Category.assoc]
-  simp
-  apply limit.hom_ext fun k => ?_
-  simp
-
-  show _ ≫ _ ≫ (colimit.ι (Discrete.functor fun _ => pullback _ (g.app _)) j ≫ (Types.coproductPullbackEquiv _ _).toFun) ≫ _ = _
-  show _ ≫ _ ≫ (Sigma.ι _ _ ≫ _) ≫ _ = _
-  rw [Types.ι_coproductPullbackEquiv]
+  simp only [Iso.trans_symm, Iso.trans_hom, Iso.trans_inv, Iso.symm_hom, Category.assoc,
+    colimit_map_colimitObjIsoColimitCompEvaluation_hom_assoc,
+    limitObjIsoLimitCompEvaluation_inv_limit_map]
+  simp only [← Category.assoc _ _ (limitObjIsoLimitCompEvaluation _ _).inv]
+  refine congrArg (fun m => (_ ≫ m) ≫ _) (colimit.hom_ext fun j => limit.hom_ext fun k => ?_)
+  simp only [Functor.mapIso_hom, colim_map, Equiv.toIso_hom, ι_colimMap_assoc,
+    HasColimit.isoOfNatIso_ι_hom_assoc]
+  rw [Types.ι_coproductPullbackEquiv_assoc, Types.ι_coproductPullbackEquiv_assoc]
+  cases k with | none => simp | some k => cases k <;> simp
 
 end
 
@@ -102,12 +102,28 @@ lemma exists_finset_epi (F : Sheaf J A) (hF : Quasicompact F) {I : Type v'} {G :
 
 variable (I : Type)
 
+instance Types.epi_pullback_of_epi_f {X Y Z : Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi f] :
+    Epi (Limits.pullback.snd f g) := by
+  refine (epi_iff_surjective _).2 (fun y => ?_)
+  obtain ⟨x, hx⟩ := (epi_iff_surjective f).1 inferInstance (g y)
+  exact ⟨(Limits.Types.pullbackIsoPullback f g).inv ⟨⟨x, y⟩, hx⟩,
+    Limits.Types.pullbackIsoPullback_inv_snd_apply _ _ _⟩
+
+instance FunctorToTypes.epi_pullback_of_epi_f {X Y Z : C ⥤ Type} (f : X ⟶ Z) (g : Y ⟶ Z) [Epi f] :
+    Epi (Limits.pullback.snd f g) := by
+  have (c : C) : Epi ((Limits.pullback.snd f g).app c) := by
+    have : Epi (Limits.pullback.snd (f.app c) (g.app c)) :=
+      Types.epi_pullback_of_epi_f _ _
+    rw [← Limits.pullbackObjIso_hom_comp_snd]
+    infer_instance
+  exact NatTrans.epi_of_epi_app _
+
 lemma quasicompact_of_epi_quasicompact [Limits.HasPullbacks A] {F F' : Sheaf J A} (f : F' ⟶ F)
     [Epi f] (hF' : F'.Quasicompact) : F.Quasicompact where
   exists_finset_epi {I G} g [Epi g] := by
     set G' := fun i : I => Limits.pullback (Limits.Sigma.ι G i ≫ g) f
     set g' := Limits.Sigma.desc fun i => Limits.pullback.snd (Limits.Sigma.ι G i ≫ g) f
-    have : Epi g' := by
+    have : Epi (Limits.pullback.fst f g) := by
       sorry
     sorry
 
