@@ -13,6 +13,7 @@ import Mathlib.CategoryTheory.Limits.FilteredColimitCommutesProduct
 import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Products
 import Mathlib.CategoryTheory.Limits.FunctorCategory.EpiMono
+import Mathlib.CategoryTheory.Sites.LocallySurjective
 
 /-!
 # Quasicompact and quasiseparated sheaves
@@ -107,10 +108,52 @@ instance FunctorToTypes.epi_pullback_of_epi_g {X Y Z : C ⥤ Type} (f : X ⟶ Z)
 
 end
 
-namespace CategoryTheory.Sheaf
+section
+
+open CategoryTheory Limits
+
+attribute [local instance] Types.instFunLike Types.instConcreteCategory
 
 variable {C : Type u} [Category.{v} C] {J : GrothendieckTopology C}
   {A : Type u'} [Category.{v'} A] [HasWeakSheafify J A] [Limits.HasColimits A]
+
+instance Presheaf.isLocallySurjective_pullback_of_isLocallySurjective_f {X Y Z : Cᵒᵖ ⥤ (Type w)}
+    (f : X ⟶ Z) (g : Y ⟶ Z) [Presheaf.IsLocallySurjective J f] :
+    Presheaf.IsLocallySurjective J (pullback.snd f g) where
+  imageSieve_mem {U} (s : Y.obj _) := by
+    have := Presheaf.imageSieve_mem J f (g.app _ s)
+    refine J.transitive this _ fun V (i : V ⟶ U) => ?_
+    rw [Presheaf.imageSieve_apply]
+    refine fun ⟨(t : X.obj _), (ht : f.app _ t = Z.map _ _)⟩ => ?_
+    have : Sieve.pullback i (Presheaf.imageSieve (pullback.snd f g) s) = ⊤ := by
+      apply Sieve.pullback_eq_top_of_mem
+      rw [Presheaf.imageSieve_apply]
+      refine ⟨((Types.pullbackIsoPullback _ _).inv ≫ (pullbackObjIso f g _).inv)
+        ⟨⟨t, Y.map i.op s⟩, ht.trans (FunctorToTypes.naturality Y Z g i.op s).symm⟩, ?_⟩
+      change (_ ≫ (pullbackObjIso _ _ _).inv ≫ (pullback.snd f g).app _) _ = Y.map _ _
+      rw [pullbackObjIso_inv_comp_snd, Types.pullbackIsoPullback_inv_snd]
+    rw [this]
+    exact GrothendieckTopology.top_mem J V
+
+instance Presheaf.isLocallySurjective_pullback_of_isLocallySurjective_g {X Y Z : Cᵒᵖ ⥤ (Type w)}
+    (f : X ⟶ Z) (g : Y ⟶ Z) [Presheaf.IsLocallySurjective J g] :
+    Presheaf.IsLocallySurjective J (pullback.fst f g) where
+  imageSieve_mem {U} (s : X.obj _) := by
+    have := Presheaf.imageSieve_mem J g (f.app _ s)
+    refine J.transitive this _ fun V (i : V ⟶ U) => ?_
+    rw [Presheaf.imageSieve_apply]
+    refine fun ⟨(t : Y.obj _), (ht : g.app _ t = Z.map _ _)⟩ => ?_
+    have : Sieve.pullback i (Presheaf.imageSieve (pullback.fst f g) s) = ⊤ := by
+      apply Sieve.pullback_eq_top_of_mem
+      rw [Presheaf.imageSieve_apply]
+      refine ⟨((Types.pullbackIsoPullback _ _).inv ≫ (pullbackObjIso f g _).inv)
+        ⟨⟨X.map i.op s, t⟩, (FunctorToTypes.naturality X Z f i.op s).trans ht.symm⟩, ?_⟩
+      change (_ ≫ (pullbackObjIso _ _ _).inv ≫ (pullback.fst f g).app _) _ = X.map _ _
+      rw [pullbackObjIso_inv_comp_fst, Types.pullbackIsoPullback_inv_fst]
+    rw [this]
+    exact GrothendieckTopology.top_mem J V
+
+namespace CategoryTheory.Sheaf
 
 section Quasicompact
 
@@ -132,17 +175,33 @@ lemma exists_finset_epi (F : Sheaf J A) (hF : Quasicompact F) {I : Type v'} {G :
 
 variable (I : Type)
 
-instance epi_pullback_of_epi_f [Limits.HasPullbacks A] {X Y Z : Sheaf J A} (f : X ⟶ Z) (g : Y ⟶ Z)
-    [Epi f] : Epi (Limits.pullback.snd f g) := by
-  sorry
+instance epi_pullback_of_epi_f [HasSheafify J (Type w)] {X Y Z : Sheaf J (Type w)} (f : X ⟶ Z)
+    (g : Y ⟶ Z) [Epi f] : Epi (Limits.pullback.snd f g) := by
+  have : Presheaf.IsLocallySurjective J f.val := (isLocallySurjective_iff_epi f).2 inferInstance
+  have : IsLocallySurjective (Limits.pullback.snd f g) := by
+    simp only [IsLocallySurjective, ← sheafToPresheaf_map, ← preservesLimitIso_hom_π,
+      Presheaf.comp_isLocallySurjective_iff, Presheaf.isLocallySurjective_comp_iff,
+      ← (IsIso.comp_inv_eq _).2 (Limits.HasLimit.isoOfNatIso_hom_π (Limits.cospanCompIso _ _ _) _)]
+    exact Presheaf.isLocallySurjective_pullback_of_isLocallySurjective_f f.val g.val
+  exact epi_of_isLocallySurjective' (pullback.snd f g)
 
-lemma quasicompact_of_epi_quasicompact [Limits.HasPullbacks A] {F F' : Sheaf J A} (f : F' ⟶ F)
-    [Epi f] (hF' : F'.Quasicompact) : F.Quasicompact where
+instance epi_pullback_of_epi_g [HasSheafify J (Type w)] {X Y Z : Sheaf J (Type w)} (f : X ⟶ Z)
+    (g : Y ⟶ Z) [Epi g] : Epi (Limits.pullback.fst f g) := by
+  have : Presheaf.IsLocallySurjective J g.val := (isLocallySurjective_iff_epi g).2 inferInstance
+  have : IsLocallySurjective (Limits.pullback.fst f g) := by
+    simp only [IsLocallySurjective, ← sheafToPresheaf_map, ← preservesLimitIso_hom_π,
+      Presheaf.comp_isLocallySurjective_iff, Presheaf.isLocallySurjective_comp_iff,
+      ← (IsIso.comp_inv_eq _).2 (Limits.HasLimit.isoOfNatIso_hom_π (Limits.cospanCompIso _ _ _) _)]
+    exact Presheaf.isLocallySurjective_pullback_of_isLocallySurjective_g f.val g.val
+  exact epi_of_isLocallySurjective' (pullback.fst f g)
+
+lemma quasicompact_of_epi_quasicompact [HasSheafify J (Type w)] {F F' : Sheaf J (Type w)}
+    (f : F' ⟶ F) [Epi f] (hF' : F'.Quasicompact) : F.Quasicompact where
   exists_finset_epi {I G} g [Epi g] := by
     set G' := fun i : I => Limits.pullback (Limits.Sigma.ι G i ≫ g) f
     set g' := Limits.Sigma.desc fun i => Limits.pullback.snd (Limits.Sigma.ι G i ≫ g) f
     have : Epi (Limits.pullback.fst f g) := by
-      sorry
+      infer_instance
     sorry
 
 lemma quasicompact_of_finite_presieve_quasicompact [Limits.HasPullbacks A] {F : Sheaf J A}
@@ -185,3 +244,5 @@ structure Qcqs (F : Sheaf J A) : Prop extends F.Quasicompact, F.Quasiseparated
 end Qcqs
 
 end CategoryTheory.Sheaf
+
+end
