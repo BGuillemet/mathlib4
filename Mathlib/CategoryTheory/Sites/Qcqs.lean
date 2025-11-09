@@ -56,7 +56,7 @@ theorem Types.ι_coproductPullbackEquiv {X : I → Type} {Y Z : Type} (f : (i : 
 --       = pullback.map (f j.as) g (Sigma.desc f) g (Sigma.ι X j.as) (𝟙 _) (𝟙 _) (by simp) rfl :=
 --   Types.ι_coproductPullbackEquiv _ _ _
 
-noncomputable def FunctorToTypes.coproductPullbackIso (X : I → C ⥤ Type) (Y Z : C ⥤ Type)
+noncomputable def FunctorToTypes.coproductPullbackIso {X : I → C ⥤ Type} {Y Z : C ⥤ Type}
     (f : (i : I) → X i ⟶ Z) (g : Y ⟶ Z) :
     (∐ fun i : I => pullback (f i) g) ≅ pullback (Sigma.desc f) g := by
   refine NatIso.ofComponents (fun c =>
@@ -170,41 +170,48 @@ structure Quasicompact (F : Sheaf J A) : Prop where
 
 lemma exists_finset_epi (F : Sheaf J A) (hF : Quasicompact F) {I : Type v'} {G : I → Sheaf J A}
     (f : ∐ G ⟶ F) [Epi f] :
-    ∃ J : Finset I, Epi ((Limits.Sigma.map' Subtype.val (fun (j : J) => 𝟙 (G j))) ≫ f) :=
+    ∃ J : Finset I, Epi ((Sigma.map' Subtype.val (fun (j : J) => 𝟙 (G j))) ≫ f) :=
   hF.exists_finset_epi f
 
 variable (I : Type)
 
 instance epi_pullback_of_epi_f [HasSheafify J (Type w)] {X Y Z : Sheaf J (Type w)} (f : X ⟶ Z)
-    (g : Y ⟶ Z) [Epi f] : Epi (Limits.pullback.snd f g) := by
+    (g : Y ⟶ Z) [Epi f] : Epi (pullback.snd f g) := by
   have : Presheaf.IsLocallySurjective J f.val := (isLocallySurjective_iff_epi f).2 inferInstance
-  have : IsLocallySurjective (Limits.pullback.snd f g) := by
+  have : IsLocallySurjective (pullback.snd f g) := by
     simp only [IsLocallySurjective, ← sheafToPresheaf_map, ← preservesLimitIso_hom_π,
       Presheaf.comp_isLocallySurjective_iff, Presheaf.isLocallySurjective_comp_iff,
-      ← (IsIso.comp_inv_eq _).2 (Limits.HasLimit.isoOfNatIso_hom_π (Limits.cospanCompIso _ _ _) _)]
+      ← (IsIso.comp_inv_eq _).2 (HasLimit.isoOfNatIso_hom_π (cospanCompIso _ _ _) _)]
     exact Presheaf.isLocallySurjective_pullback_of_isLocallySurjective_f f.val g.val
   exact epi_of_isLocallySurjective' (pullback.snd f g)
 
 instance epi_pullback_of_epi_g [HasSheafify J (Type w)] {X Y Z : Sheaf J (Type w)} (f : X ⟶ Z)
-    (g : Y ⟶ Z) [Epi g] : Epi (Limits.pullback.fst f g) := by
+    (g : Y ⟶ Z) [Epi g] : Epi (pullback.fst f g) := by
   have : Presheaf.IsLocallySurjective J g.val := (isLocallySurjective_iff_epi g).2 inferInstance
-  have : IsLocallySurjective (Limits.pullback.fst f g) := by
+  have : IsLocallySurjective (pullback.fst f g) := by
     simp only [IsLocallySurjective, ← sheafToPresheaf_map, ← preservesLimitIso_hom_π,
       Presheaf.comp_isLocallySurjective_iff, Presheaf.isLocallySurjective_comp_iff,
-      ← (IsIso.comp_inv_eq _).2 (Limits.HasLimit.isoOfNatIso_hom_π (Limits.cospanCompIso _ _ _) _)]
+      ← (IsIso.comp_inv_eq _).2 (HasLimit.isoOfNatIso_hom_π (cospanCompIso _ _ _) _)]
     exact Presheaf.isLocallySurjective_pullback_of_isLocallySurjective_g f.val g.val
   exact epi_of_isLocallySurjective' (pullback.fst f g)
+
+noncomputable def coproductPullbackIso [HasSheafify J (Type w)] {X : I → Sheaf J (Type w)}
+    {Y Z : Sheaf J (Type w)} (f : (i : I) → X i ⟶ Z) (g : Y ⟶ Z) :
+    (∐ fun i => pullback (f i) g) ≅ pullback (Sigma.desc f) g := by
+  sorry
 
 lemma quasicompact_of_epi_quasicompact [HasSheafify J (Type w)] {F F' : Sheaf J (Type w)}
     (f : F' ⟶ F) [Epi f] (hF' : F'.Quasicompact) : F.Quasicompact where
   exists_finset_epi {I G} g [Epi g] := by
-    set G' := fun i : I => Limits.pullback (Limits.Sigma.ι G i ≫ g) f
-    set g' := Limits.Sigma.desc fun i => Limits.pullback.snd (Limits.Sigma.ι G i ≫ g) f
-    have : Epi (Limits.pullback.fst f g) := by
+    set G' := fun i : I => pullback (Sigma.ι G i ≫ g) f
+    set g' := Sigma.desc fun i => pullback.snd (Sigma.ι G i ≫ g) f
+    have : Epi (pullback.snd g f) := by
       infer_instance
+    have g_eq_desc_ι_g := Sigma.hom_ext g (Sigma.desc (fun i => Sigma.ι G i ≫ g)) (by simp)
+    -- have : Epi (FunctorToTypes.coproductPullbackIso) :=
     sorry
 
-lemma quasicompact_of_finite_presieve_quasicompact [Limits.HasPullbacks A] {F : Sheaf J A}
+lemma quasicompact_of_finite_presieve_quasicompact [HasPullbacks A] {F : Sheaf J A}
     {I : Type v'} (hI : Fintype I) {G : I → Sheaf J A} (hG : ∀ i : I, Quasicompact (G i))
     (f : ∐ G ⟶ F) [Epi f] : F.Quasicompact where
   exists_finset_epi {I' G'} f' [Epi f'] := by
