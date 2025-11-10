@@ -999,6 +999,7 @@ import Mathlib.Algebra.Order.Ring.WithTop
 import Mathlib.Algebra.Order.Round
 import Mathlib.Algebra.Order.Star.Basic
 import Mathlib.Algebra.Order.Star.Conjneg
+import Mathlib.Algebra.Order.Star.Pi
 import Mathlib.Algebra.Order.Star.Prod
 import Mathlib.Algebra.Order.Sub.Basic
 import Mathlib.Algebra.Order.Sub.Defs
@@ -4569,6 +4570,7 @@ import Mathlib.LinearAlgebra.TensorProduct.Submodule
 import Mathlib.LinearAlgebra.TensorProduct.Tower
 import Mathlib.LinearAlgebra.TensorProduct.Vanishing
 import Mathlib.LinearAlgebra.Trace
+import Mathlib.LinearAlgebra.Transvection
 import Mathlib.LinearAlgebra.UnitaryGroup
 import Mathlib.LinearAlgebra.Vandermonde
 import Mathlib.Logic.Basic
@@ -5813,6 +5815,7 @@ import Mathlib.RingTheory.KrullDimension.Module
 import Mathlib.RingTheory.KrullDimension.NonZeroDivisors
 import Mathlib.RingTheory.KrullDimension.PID
 import Mathlib.RingTheory.KrullDimension.Polynomial
+import Mathlib.RingTheory.KrullDimension.Regular
 import Mathlib.RingTheory.KrullDimension.Zero
 import Mathlib.RingTheory.Lasker
 import Mathlib.RingTheory.LaurentSeries
