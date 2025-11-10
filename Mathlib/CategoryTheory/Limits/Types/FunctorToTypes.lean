@@ -197,7 +197,7 @@ def overCompYonedaCompCoyonedaFlipNatIsoWhiskeringLeftOver' :
     (sectionOver.over F ⋙ yoneda.op ⋙ ((whiskeringRight _ _ _).obj uliftFunctor).op
       ⋙ coyoneda).flip ≅ (whiskeringLeftOver F) ⋙ (whiskeringRightUlift F) :=
   (flipFunctor _ _ _).mapIso (isoWhiskerLeft (sectionOver.over F)
-    largeCurriedUliftYonedaLemma)
+    uliftYonedaOpCompCoyoneda)
 
 noncomputable def coyonedaOpColimitOverYonedaNatIsoWhiskeringLeftOverLim' :
     coyoneda.obj (Opposite.op (colimit (overYoneda' F))) ≅

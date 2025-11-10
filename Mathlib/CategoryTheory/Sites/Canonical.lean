@@ -202,6 +202,25 @@ namespace GrothendieckTopology
 
 open Sheaf
 
+section
+
+universe v₁ u₁
+
+variable (J : GrothendieckTopology C) {A : Type u₁} [Category.{v₁} A]
+
+lemma test (I : Type) (G : I → Sheaf (canonicalTopology (Sheaf J A)) (Type))
+    (F : Sheaf (canonicalTopology (Sheaf J A)) (Type)) (f : ∐ G ⟶ F) [Epi f]
+    [∀ i, (G i).val.IsRepresentable]
+    [∀ i j, (pullback (Sigma.ι i ≫ f) (Sigma.ι j ≫ f)).val.IsRepresentable] :
+    F.val.IsRepresentable :=
+  sorry
+
+theorem isRepresentable (F : Sheaf (canonicalTopology (Sheaf J A)) (Type)) :
+    F.val.IsRepresentable :=
+  sorry
+
+end
+
 /-- A subcanonical topology is a topology which is smaller than the canonical topology.
 Equivalently, a topology is subcanonical iff every representable is a sheaf.
 -/

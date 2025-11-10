@@ -211,7 +211,7 @@ def largeCurriedUliftYonedaLemma :
     sheafToPresheafCompCoyonedaCompWhiskeringLeftSheafToPresheaf.symm).trans
     (isoWhiskerRight (NatIso.op (J.uliftYonedaCompSheafToPresheaf.symm))
     (_ ⋙ (whiskeringLeft _ _ _).obj _))).trans
-    (isoWhiskerRight CategoryTheory.largeCurriedUliftYonedaLemma
+    (isoWhiskerRight CategoryTheory.uliftYonedaOpCompCoyoneda
     ((whiskeringLeft _ _ _).obj _))
 
 @[simp]
