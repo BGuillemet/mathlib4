@@ -477,10 +477,10 @@ variable (C)
 
 -- We need to help typeclass inference with some awkward universe levels here.
 instance prodCategoryInstance1 : Category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
-  CategoryTheory.prod.{max u₁ v₁, v₁} (Cᵒᵖ ⥤ Type v₁) Cᵒᵖ
+  CategoryTheory.prod'.{max u₁ v₁, v₁} (Cᵒᵖ ⥤ Type v₁) Cᵒᵖ
 
 instance prodCategoryInstance2 : Category (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) :=
-  CategoryTheory.prod.{v₁, max u₁ v₁} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
+  CategoryTheory.prod'.{v₁, max u₁ v₁} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
 
 open Yoneda
 
@@ -1062,8 +1062,8 @@ def homNatIso {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D} (hF : F.FullyFai
 @[simps!, deprecated homNatIso (since := "2025-10-28")]
 def homNatIsoMaxRight {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D} (hF : F.FullyFaithful)
     (X : C) : F.op ⋙ yoneda.obj (F.obj X) ≅ uliftYoneda.obj.{v₂} X :=
-  isoWhiskerLeft F.op (uliftYonedaIsoYoneda.symm.app _) ≪≫ hF.homNatIso _
-    ≪≫ NatIso.ofComponents (fun _ => Equiv.toIso (Equiv.ulift.trans Equiv.ulift.symm))
+  isoWhiskerLeft F.op (uliftYonedaIsoYoneda.symm.app _) ≪≫ hF.homNatIso _ ≪≫
+    NatIso.ofComponents (fun _ => Equiv.toIso (Equiv.ulift.trans Equiv.ulift.symm))
 
 /-- `FullyFaithful.homEquiv` as a natural isomorphism. -/
 @[simps!]
@@ -1079,11 +1079,11 @@ def compUliftYonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C
 /-- `FullyFaithful.homEquiv` as a natural isomorphism. -/
 @[simps!, deprecated compUliftYonedaCompWhiskeringLeft (since := "2025-10-28")]
 def compYonedaCompWhiskeringLeftMaxRight {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D}
-    (hF : F.FullyFaithful) : F ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj F.op ≅ uliftYoneda.{v₂} :=
-  isoWhiskerLeft F (isoWhiskerRight uliftYonedaIsoYoneda.symm.{v₁} _)
-    ≪≫ hF.compUliftYonedaCompWhiskeringLeft
-    ≪≫ NatIso.ofComponents (fun _ => NatIso.ofComponents
-    (fun _ => Equiv.toIso (Equiv.ulift.trans Equiv.ulift.symm)))
+    (hF : F.FullyFaithful) : F ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj F.op ≅ uliftYoneda.{v₂} := by
+  refine isoWhiskerLeft F (isoWhiskerRight uliftYonedaIsoYoneda.symm.{v₁} _) ≪≫
+    hF.compUliftYonedaCompWhiskeringLeft ≪≫
+    NatIso.ofComponents (fun _ => NatIso.ofComponents
+      (fun _ => Equiv.toIso (Equiv.ulift.trans Equiv.ulift.symm)))
 
 /-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
 @[simps!]
