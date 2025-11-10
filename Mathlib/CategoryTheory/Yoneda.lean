@@ -53,24 +53,17 @@ def uliftYonedaIsoYoneda {C : Type u₁} [Category.{max w v₁} C] :
 
 /-- The co-Yoneda embedding, as a functor from `Cᵒᵖ` into co-presheaves on `C`.
 -/
-@[simps]
-def coyoneda : Cᵒᵖ ⥤ C ⥤ Type v₁ where
-  obj X :=
-    { obj := fun Y => unop X ⟶ Y
-      map := fun f g => g ≫ f }
-  map f :=
-    { app := fun _ g => f.unop ≫ g }
+abbrev coyoneda : Cᵒᵖ ⥤ C ⥤ Type v₁ := yoneda.flip
 
 /-- Variant of the Coyoneda embedding which allows a raise in the universe level
 for the category of types. -/
-@[pp_with_univ, simps!]
-def uliftCoyoneda : Cᵒᵖ ⥤ C ⥤ Type (max w v₁) :=
-  coyoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{w}
+@[pp_with_univ]
+abbrev uliftCoyoneda : Cᵒᵖ ⥤ C ⥤ Type (max w v₁) := uliftYoneda.{w}.flip
 
 /-- If `C` is a category with `[Category.{max w v₁} C]`, this is the isomorphism
 `uliftCoyoneda.{w} (C := C) ≅ coyoneda`. -/
 @[simps!]
-def uliftCoyonedaIsoYoneda {C : Type u₁} [Category.{max w v₁} C] :
+def uliftCoyonedaIsoCoyoneda {C : Type u₁} [Category.{max w v₁} C] :
     uliftCoyoneda.{w} (C := C) ≅ coyoneda :=
   NatIso.ofComponents (fun _ ↦ NatIso.ofComponents (fun _ ↦ Equiv.ulift.toIso))
 
@@ -484,10 +477,10 @@ variable (C)
 
 -- We need to help typeclass inference with some awkward universe levels here.
 instance prodCategoryInstance1 : Category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
-  CategoryTheory.prod.{max u₁ v₁, v₁} (Cᵒᵖ ⥤ Type v₁) Cᵒᵖ
+  CategoryTheory.prod'.{max u₁ v₁, v₁} (Cᵒᵖ ⥤ Type v₁) Cᵒᵖ
 
 instance prodCategoryInstance2 : Category (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) :=
-  CategoryTheory.prod.{v₁, max u₁ v₁} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
+  CategoryTheory.prod'.{v₁, max u₁ v₁} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
 
 open Yoneda
 
@@ -701,9 +694,8 @@ def uliftYonedaEquiv {X : C} {F : Cᵒᵖ ⥤ Type (max w v₁)} :
 attribute [simp] uliftYonedaEquiv_symm_apply_app
 
 lemma uliftYonedaEquiv_naturality {X Y : Cᵒᵖ} {F : Cᵒᵖ ⥤ Type max w v₁}
-    (f : uliftYoneda.{w}.obj (unop X) ⟶ F)
-    (g : X ⟶ Y) : F.map g (uliftYonedaEquiv.{w} f) =
-      uliftYonedaEquiv.{w} (uliftYoneda.map g.unop ≫ f) := by
+    (f : uliftYoneda.{w}.obj (unop X) ⟶ F) (g : X ⟶ Y) :
+    F.map g (uliftYonedaEquiv.{w} f) = uliftYonedaEquiv.{w} (uliftYoneda.map g.unop ≫ f) := by
   simp [uliftYonedaEquiv, uliftYoneda,
     ← FunctorToTypes.naturality _ _ f g (ULift.up (𝟙 _))]
 
@@ -736,8 +728,8 @@ lemma hom_ext_uliftYoneda {P Q : Cᵒᵖ ⥤ Type max w v₁} {f g : P ⟶ Q}
   simpa [uliftYonedaEquiv] using congr_arg uliftYonedaEquiv.{w} (h _ (uliftYonedaEquiv.symm x))
 
 /-- A variant of the curried version of the Yoneda lemma with a raise in the universe level. -/
-def largeCurriedUliftYonedaLemma {C : Type u₁} [Category.{v₁} C] :
-    yoneda.op ⋙ ((whiskeringRight _ _ _).obj uliftFunctor.{w}).op ⋙ coyoneda ≅
+def uliftYonedaOpCompCoyoneda {C : Type u₁} [Category.{v₁} C] :
+    uliftYoneda.{w}.op ⋙ coyoneda ≅
       evaluation Cᵒᵖ (Type max v₁ w) ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u₁} :=
   NatIso.ofComponents
     (fun X => NatIso.ofComponents
@@ -861,7 +853,7 @@ def curriedCoyonedaLemma {C : Type u₁} [SmallCategory C] :
 
 /-- The curried version of the Coyoneda lemma. -/
 def largeCurriedCoyonedaLemma {C : Type u₁} [Category.{v₁} C] :
-    (coyoneda.rightOp ⋙ coyoneda) ≅
+    coyoneda.rightOp ⋙ coyoneda ≅
       evaluation C (Type v₁) ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u₁} :=
   NatIso.ofComponents
     (fun X => NatIso.ofComponents
@@ -920,7 +912,7 @@ def uliftCoyonedaEquiv {X : Cᵒᵖ} {F : C ⥤ Type (max w v₁)} :
   invFun x := { app Y y := F.map y.down x }
   left_inv τ := by
     ext Y ⟨y⟩
-    simp [uliftCoyoneda, ← FunctorToTypes.naturality]
+    simp [uliftYoneda, ← FunctorToTypes.naturality]
   right_inv x := by simp
 
 @[deprecated (since := "2025-08-04")] alias coyonedaCompUliftFunctorEquiv :=
@@ -929,10 +921,9 @@ def uliftCoyonedaEquiv {X : Cᵒᵖ} {F : C ⥤ Type (max w v₁)} :
 attribute [simp] uliftCoyonedaEquiv_symm_apply_app
 
 lemma uliftCoyonedaEquiv_naturality {X Y : C} {F : C ⥤ Type max w v₁}
-    (f : uliftCoyoneda.{w}.obj (op X) ⟶ F)
-    (g : X ⟶ Y) : F.map g (uliftCoyonedaEquiv.{w} f) =
-      uliftCoyonedaEquiv.{w} (uliftCoyoneda.map g.op ≫ f) := by
-  simp [uliftCoyonedaEquiv, uliftCoyoneda,
+    (f : uliftCoyoneda.{w}.obj (op X) ⟶ F) (g : X ⟶ Y) :
+    F.map g (uliftCoyonedaEquiv.{w} f) = uliftCoyonedaEquiv.{w} (uliftCoyoneda.map g.op ≫ f) := by
+  simp [uliftCoyonedaEquiv, uliftYoneda,
     ← FunctorToTypes.naturality _ _ f g (ULift.up (𝟙 _))]
 
 lemma uliftCoyonedaEquiv_comp {X : Cᵒᵖ} {F G : C ⥤ Type max w v₁}
@@ -953,7 +944,7 @@ lemma uliftCoyonedaEquiv_symm_map {X Y : C} (f : X ⟶ Y) {F : C ⥤ Type max w 
 lemma uliftCoyonedaEquiv_uliftCoyoneda_map {X Y : Cᵒᵖ} (f : X ⟶ Y) :
     DFunLike.coe (β := fun _ ↦ ULift.{w} (Y.unop ⟶ X.unop))
         uliftCoyonedaEquiv.{w} (uliftCoyoneda.map f) = ULift.up f.unop := by
-  simp [uliftCoyonedaEquiv, uliftCoyoneda]
+  simp [uliftCoyonedaEquiv, uliftYoneda]
 
 /-- Two morphisms of presheaves of types `P ⟶ Q` coincide if the precompositions
 with morphisms `uliftCoyoneda.obj X ⟶ P` agree. -/
@@ -965,8 +956,8 @@ lemma hom_ext_uliftCoyoneda {P Q : C ⥤ Type max w v₁} {f g : P ⟶ Q}
     using congr_arg uliftCoyonedaEquiv.{w} (h _ (uliftCoyonedaEquiv.symm x))
 
 /-- A variant of the curried version of the Coyoneda lemma with a raise in the universe level. -/
-def largeCurriedUliftCoyonedaLemma {C : Type u₁} [Category.{v₁} C] :
-    coyoneda.rightOp ⋙ ((whiskeringRight _ _ _).obj uliftFunctor.{w}).op ⋙ coyoneda ≅
+def uliftCoyonedaRightOpCompCoyoneda {C : Type u₁} [Category.{v₁} C] :
+    uliftCoyoneda.{w}.rightOp ⋙ coyoneda ≅
       evaluation C (Type max v₁ w) ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{u₁} :=
   NatIso.ofComponents
     (fun X => NatIso.ofComponents
@@ -1062,68 +1053,49 @@ variable {C : Type u₁} [Category.{v₁} C]
 /-- `FullyFaithful.homEquiv` as a natural isomorphism. -/
 @[simps!]
 def homNatIso {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D} (hF : F.FullyFaithful) (X : C) :
-    F.op ⋙ yoneda.obj (F.obj X) ⋙ uliftFunctor.{v₁} ≅ yoneda.obj X ⋙ uliftFunctor.{v₂} :=
+    F.op ⋙ uliftYoneda.obj.{v₁} (F.obj X) ≅ uliftYoneda.obj.{v₂} X :=
   NatIso.ofComponents
     (fun Y => Equiv.toIso (Equiv.ulift.trans <| hF.homEquiv.symm.trans Equiv.ulift.symm))
     (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
 
 /-- `FullyFaithful.homEquiv` as a natural isomorphism. -/
-@[simps!]
+@[simps!, deprecated homNatIso (since := "2025-10-28")]
 def homNatIsoMaxRight {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D} (hF : F.FullyFaithful)
-    (X : C) : F.op ⋙ yoneda.obj (F.obj X) ≅ yoneda.obj X ⋙ uliftFunctor.{v₂} :=
-  NatIso.ofComponents
-    (fun Y => Equiv.toIso (hF.homEquiv.symm.trans Equiv.ulift.symm))
-    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
+    (X : C) : F.op ⋙ yoneda.obj (F.obj X) ≅ uliftYoneda.obj.{v₂} X :=
+  isoWhiskerLeft F.op (uliftYonedaIsoYoneda.symm.app _) ≪≫ hF.homNatIso _ ≪≫
+    NatIso.ofComponents (fun _ => Equiv.toIso (Equiv.ulift.trans Equiv.ulift.symm))
 
 /-- `FullyFaithful.homEquiv` as a natural isomorphism. -/
 @[simps!]
-def compYonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D}
-    (hF : F.FullyFaithful) : F ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj F.op ⋙
-      (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₁} ≅
-      yoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
+def compUliftYonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D}
+    (hF : F.FullyFaithful) :
+    F ⋙ uliftYoneda.{v₁} ⋙ (whiskeringLeft _ _ _).obj F.op ≅ uliftYoneda.{v₂} :=
   NatIso.ofComponents (fun X => hF.homNatIso _)
     (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
 
 /-- `FullyFaithful.homEquiv` as a natural isomorphism. -/
-@[simps!]
+@[simps!, deprecated compUliftYonedaCompWhiskeringLeft (since := "2025-10-28")]
 def compYonedaCompWhiskeringLeftMaxRight {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D}
-    (hF : F.FullyFaithful) : F ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj F.op ≅
-      yoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
-  NatIso.ofComponents (fun X => hF.homNatIsoMaxRight _)
-    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
+    (hF : F.FullyFaithful) : F ⋙ yoneda ⋙ (whiskeringLeft _ _ _).obj F.op ≅ uliftYoneda.{v₂} :=
+  isoWhiskerLeft F (isoWhiskerRight uliftYonedaIsoYoneda.symm.{v₁} _) ≪≫
+    hF.compUliftYonedaCompWhiskeringLeft ≪≫
+    NatIso.ofComponents (fun _ => NatIso.ofComponents
+      (fun _ => Equiv.toIso (Equiv.ulift.trans Equiv.ulift.symm)))
 
 /-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
 @[simps!]
 def homNatIso' {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D} (hF : F.FullyFaithful) (X : C) :
-    F ⋙ coyoneda.obj (op (F.obj X)) ⋙ uliftFunctor.{v₁} ≅
-      coyoneda.obj (op X) ⋙ uliftFunctor.{v₂} :=
+    F ⋙ uliftCoyoneda.obj.{v₁} (op (F.obj X)) ≅ uliftCoyoneda.obj.{v₂} (op X) :=
   NatIso.ofComponents
     (fun Y => Equiv.toIso (Equiv.ulift.trans <| hF.homEquiv.symm.trans Equiv.ulift.symm))
     (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
 
 /-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
 @[simps!]
-def homNatIsoMaxRight' {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D} (hF : F.FullyFaithful)
-    (X : C) : F ⋙ coyoneda.obj (op (F.obj X)) ≅ coyoneda.obj (op X) ⋙ uliftFunctor.{v₂} :=
-  NatIso.ofComponents
-    (fun Y => Equiv.toIso (hF.homEquiv.symm.trans Equiv.ulift.symm))
-    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
-
-/-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
-@[simps!]
-def compCoyonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D}
-    (hF : F.FullyFaithful) : F.op ⋙ coyoneda ⋙ (whiskeringLeft _ _ _).obj F ⋙
-      (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₁} ≅
-      coyoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
+def compUliftCoyonedaCompWhiskeringLeft {D : Type u₂} [Category.{v₂} D] {F : C ⥤ D}
+    (hF : F.FullyFaithful) :
+    F.op ⋙ uliftCoyoneda.{v₁} ⋙ (whiskeringLeft _ _ _).obj F ≅ uliftCoyoneda.{v₂} :=
   NatIso.ofComponents (fun X => hF.homNatIso' _)
-    (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
-
-/-- `FullyFaithful.homEquiv` as a natural isomorphism, using coyoneda. -/
-@[simps!]
-def compCoyonedaCompWhiskeringLeftMaxRight {D : Type u₂} [Category.{max v₁ v₂} D] {F : C ⥤ D}
-    (hF : F.FullyFaithful) : F.op ⋙ coyoneda ⋙ (whiskeringLeft _ _ _).obj F ≅
-      coyoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{v₂} :=
-  NatIso.ofComponents (fun X => hF.homNatIsoMaxRight' _)
     (fun f => by ext; exact Equiv.ulift.injective (hF.map_injective (by simp)))
 
 end Functor.FullyFaithful
