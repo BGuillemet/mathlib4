@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import Mathlib.CategoryTheory.Sites.Sheaf
 import Mathlib.CategoryTheory.Sites.Sheafification
 import Mathlib.CategoryTheory.Sites.Whiskering
+import Mathlib.CategoryTheory.Sites.Limits
 
 /-!
 # The canonical topology on a category
@@ -202,25 +203,6 @@ namespace GrothendieckTopology
 
 open Sheaf
 
-section
-
-universe v₁ u₁
-
-variable (J : GrothendieckTopology C) {A : Type u₁} [Category.{v₁} A]
-
-lemma test (I : Type) (G : I → Sheaf (canonicalTopology (Sheaf J A)) (Type))
-    (F : Sheaf (canonicalTopology (Sheaf J A)) (Type)) (f : ∐ G ⟶ F) [Epi f]
-    [∀ i, (G i).val.IsRepresentable]
-    [∀ i j, (pullback (Sigma.ι i ≫ f) (Sigma.ι j ≫ f)).val.IsRepresentable] :
-    F.val.IsRepresentable :=
-  sorry
-
-theorem isRepresentable (F : Sheaf (canonicalTopology (Sheaf J A)) (Type)) :
-    F.val.IsRepresentable :=
-  sorry
-
-end
-
 /-- A subcanonical topology is a topology which is smaller than the canonical topology.
 Equivalently, a topology is subcanonical iff every representable is a sheaf.
 -/
@@ -310,5 +292,47 @@ instance : (J.uliftYoneda).Full := (J.uliftYonedaFullyFaithful).full
 instance : (J.uliftYoneda).Faithful := (J.uliftYonedaFullyFaithful).faithful
 
 end GrothendieckTopology
+
+section
+
+open Sheaf GrothendieckTopology
+
+universe v₁ u₁
+
+variable (J : GrothendieckTopology C) {A : Type u₁} [Category.{v₁} A]
+  [HasWeakSheafify (canonicalTopology (Sheaf J (Type w))) (Type max u w)]
+  [HasWeakSheafify J (Type w)]
+
+noncomputable def GrothendieckTopology.reprW [J.Subcanonical] (F : Sheaf J (Type v))
+    [F.val.IsRepresentable] : J.yoneda.obj F.val.reprX ≅ F :=
+  (fullyFaithfulSheafToPresheaf _ _).preimageIso F.val.reprW
+
+noncomputable def GrothendieckTopology.uliftReprW [J.Subcanonical] (F : Sheaf J (Type (max v w)))
+    [F.val.IsRepresentable] : J.uliftYoneda.obj F.val.reprX ≅ F :=
+  (fullyFaithfulSheafToPresheaf _ _).preimageIso F.val.uliftReprW
+
+lemma test (I : Type w) (G : I → Sheaf (canonicalTopology (Sheaf J (Type w))) (Type max u w))
+    (F : Sheaf (canonicalTopology (Sheaf J (Type w))) (Type max u w)) (f : ∐ G ⟶ F) [Epi f]
+    [∀ i, (G i).val.IsRepresentable]
+    [∀ i j, (Limits.pullback (Sigma.ι G i ≫ f) (Sigma.ι G j ≫ f)).val.IsRepresentable] :
+    F.val.IsRepresentable := by
+  let X := fun i => (G i).val.reprX
+  let Y := fun (⟨i,j⟩ : I × I) => (Limits.pullback (Sigma.ι G i ≫ f) (Sigma.ι G j ≫ f)).val.reprX
+  let g₁ (i j : I) : Y ⟨i,j⟩ ⟶ X i :=
+    (canonicalTopology (Sheaf J (Type w))).yonedaFullyFaithful.preimage
+      ((reprW _ _).hom ≫ pullback.fst _ _ ≫ (reprW _ _).inv)
+  let g₂ (i j : I) : Y ⟨i,j⟩ ⟶ X j :=
+    (canonicalTopology (Sheaf J (Type w))).yonedaFullyFaithful.preimage
+      ((reprW _ _).hom ≫ pullback.snd _ _ ≫ (reprW _ _).inv)
+  let h₁ : ∐ Y ⟶ ∐ X := Sigma.desc (fun ⟨i,j⟩ => g₁ i j ≫ Sigma.ι X i)
+  let h₂ : ∐ Y ⟶ ∐ X := Sigma.desc (fun ⟨i,j⟩ => g₂ i j ≫ Sigma.ι X j)
+  let Z := coequalizer h₁ h₂
+  sorry
+
+theorem isRepresentable (F : Sheaf (canonicalTopology (Sheaf J A)) (Type u₁)) :
+    F.val.IsRepresentable :=
+  sorry
+
+end
 
 end CategoryTheory

@@ -321,10 +321,25 @@ def representableByEquiv {F : Cᵒᵖ ⥤ Type v₁} {Y : C} :
     { homEquiv := (e.app _).toEquiv
       homEquiv_comp := fun {X X'} f g ↦ congr_fun (e.hom.naturality f.op) g }
 
+/-- The bijection `F.RepresentableBy Y ≃ (uliftYoneda.obj Y ≅ F)` when `F : Cᵒᵖ ⥤ Type max v v₁`. -/
+def representableByEquivUlift {F : Cᵒᵖ ⥤ Type max v v₁} {Y : C} :
+    F.RepresentableBy Y ≃ (uliftYoneda.obj.{v} Y ≅ F) where
+  toFun r := NatIso.ofComponents (fun _ ↦ (Equiv.ulift.trans r.homEquiv).toIso) (fun {X X'} f ↦ by
+    ext g
+    simp [r.homEquiv_comp])
+  invFun e :=
+    { homEquiv := Equiv.ulift.symm.trans (e.app _).toEquiv
+      homEquiv_comp := fun {X X'} f g ↦ congr_fun (e.hom.naturality f.op) { down := g } }
+
 /-- The isomorphism `yoneda.obj Y ≅ F` induced by `e : F.RepresentableBy Y`. -/
 def RepresentableBy.toIso {F : Cᵒᵖ ⥤ Type v₁} {Y : C} (e : F.RepresentableBy Y) :
     yoneda.obj Y ≅ F :=
   representableByEquiv e
+
+/-- The isomorphism `yoneda.obj Y ≅ F` induced by `e : F.RepresentableBy Y`. -/
+def RepresentableBy.toIsoUlift {F : Cᵒᵖ ⥤ Type max v v₁} {Y : C} (e : F.RepresentableBy Y) :
+    uliftYoneda.obj.{v} Y ≅ F :=
+  representableByEquivUlift e
 
 /-- The obvious bijection `F.CorepresentableBy X ≃ (yoneda.obj Y ≅ F)`
 when `F : C ⥤ Type v₁` and `[Category.{v₁} C]`. -/
@@ -407,11 +422,17 @@ noncomputable def reprx : F.obj (op F.reprX) :=
   F.representableBy.homEquiv (𝟙 _)
 
 /-- An isomorphism between a representable `F` and a functor of the
-form `C(-, F.reprX)`.  Note the components `F.reprW.app X`
+form `C(-, F.reprX)`. Note the components `F.reprW.app X`
 definitionally have type `(X.unop ⟶ F.reprX) ≅ F.obj X`.
 -/
 noncomputable def reprW (F : Cᵒᵖ ⥤ Type v₁) [F.IsRepresentable] :
     yoneda.obj F.reprX ≅ F := F.representableBy.toIso
+
+/-- An isomorphism between a representable `F` and a functor of the
+form `C(-, F.reprX)`.
+-/
+noncomputable def uliftReprW (F : Cᵒᵖ ⥤ Type (max v v₁)) [F.IsRepresentable] :
+    uliftYoneda.obj.{v} F.reprX ≅ F := F.representableBy.toIsoUlift
 
 theorem reprW_hom_app (F : Cᵒᵖ ⥤ Type v₁) [F.IsRepresentable]
     (X : Cᵒᵖ) (f : unop X ⟶ F.reprX) :
