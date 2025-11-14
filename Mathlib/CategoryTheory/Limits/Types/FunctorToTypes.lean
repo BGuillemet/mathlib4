@@ -216,7 +216,6 @@ noncomputable def natIsoColimitOverYoneda' :
     F ≅ colimit (overYoneda' F) :=
   (Coyoneda.fullyFaithful.preimageIso (coyonedaOpNatIsoCoyonedaOpColimitOverYoneda' F).symm).unop
 
-
 end
 
 end presheaf

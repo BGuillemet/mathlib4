@@ -7,6 +7,8 @@ import Mathlib.CategoryTheory.Sites.Sheaf
 import Mathlib.CategoryTheory.Sites.Sheafification
 import Mathlib.CategoryTheory.Sites.Whiskering
 import Mathlib.CategoryTheory.Sites.Limits
+import Mathlib.CategoryTheory.EffectiveEpi.Basic
+import Mathlib.CategoryTheory.Limits.VanKampen
 
 /-!
 # The canonical topology on a category
@@ -303,6 +305,19 @@ variable (J : GrothendieckTopology C) {A : Type u₁} [Category.{v₁} A]
   [HasWeakSheafify (canonicalTopology (Sheaf J (Type w))) (Type max u w)]
   [HasWeakSheafify J (Type w)]
 
+noncomputable def canonicalTopology.coforkYoneda {R X : C} (f g : R ⟶ X) [HasCoequalizer f g] :
+    Cofork ((canonicalTopology C).yoneda.map f) ((canonicalTopology C).yoneda.map g) := by
+  refine (Cocones.precomposeEquivalence ?_).functor.obj
+    ((canonicalTopology C).yoneda.mapCocone (coequalizer.cofork f g))
+  exact parallelPair.ext (Iso.refl _) (Iso.refl _) (by simp) (by simp)
+
+def fnejzon (R X : C) (f g : R ⟶ X) [HasCoequalizer f g]
+    (hUniv : IsUniversalColimit (coequalizer.cofork f g)) :
+    IsColimit (canonicalTopology.coforkYoneda f g) where
+  desc s := by
+
+
+
 noncomputable def GrothendieckTopology.reprW [J.Subcanonical] (F : Sheaf J (Type v))
     [F.val.IsRepresentable] : J.yoneda.obj F.val.reprX ≅ F :=
   (fullyFaithfulSheafToPresheaf _ _).preimageIso F.val.reprW
@@ -327,6 +342,10 @@ lemma test (I : Type w) (G : I → Sheaf (canonicalTopology (Sheaf J (Type w))) 
   let h₁ : ∐ Y ⟶ ∐ X := Sigma.desc (fun ⟨i,j⟩ => g₁ i j ≫ Sigma.ι X i)
   let h₂ : ∐ Y ⟶ ∐ X := Sigma.desc (fun ⟨i,j⟩ => g₂ i j ≫ Sigma.ι X j)
   let Z := coequalizer h₁ h₂
+  have : (canonicalTopology (Sheaf J (Type w))).yoneda.obj Z ≅
+      coequalizer ((canonicalTopology (Sheaf J (Type w))).yoneda.map h₁)
+        ((canonicalTopology (Sheaf J (Type w))).yoneda.map h₂) := by
+    sorry
   sorry
 
 theorem isRepresentable (F : Sheaf (canonicalTopology (Sheaf J A)) (Type u₁)) :
