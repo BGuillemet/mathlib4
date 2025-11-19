@@ -199,6 +199,17 @@ theorem isSheaf_of_isRepresentable (P : Cᵒᵖ ⥤ Type v) [P.IsRepresentable] 
     Presieve.IsSheaf (canonicalTopology C) P :=
   Presieve.isSheaf_iso (canonicalTopology C) P.reprW (isSheaf_yoneda_obj _)
 
+theorem mem_grothendieckTopology_iff_colimit {X : C} (S : Sieve X) :
+    S ∈ canonicalTopology C X ↔ Nonempty (Limits.IsColimit S.arrows.cocone) := by
+  rw [← S.forallYonedaIsSheaf_iff_colimit]
+  constructor
+  · exact fun hS _ => (isSheaf_yoneda_obj _).isSheafFor (canonicalTopology C) S.arrows
+      (by rwa [generate_sieve])
+  · refine fun h => ?_
+    unfold canonicalTopology
+    -- still FALSE
+    sorry
+
 end Sheaf
 
 namespace GrothendieckTopology

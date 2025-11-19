@@ -220,13 +220,19 @@ lemma largeCurriedUliftYonedaLemma_app_app (X : C) (F : Sheaf J (Type (max v v')
     = (J.uliftYonedaEquiv.trans Equiv.ulift.symm).toIso :=
   rfl
 
-theorem mem_grothendieckTopology_iff_colimit {X : C} (S : Sieve X) :
-    S ∈ J X ↔ Nonempty (Limits.IsColimit S.arrows.cocone) := by
+/-- A sieve of `X` belongs to a subcanonical topology `J` if and only if `yoneda X` is a colimit
+  of the diagram associated to `S` composed with the Yoneda embedding into `Sheaf J (Type v)`. -/
+theorem mem_grothendieckTopology_iff_colimit_yoneda {X : C} (S : Sieve X) :
+    S ∈ J X ↔ Nonempty (Limits.IsColimit (J.yoneda.mapCocone S.arrows.cocone)) := by
   constructor
-  · refine fun hS => S.forallYonedaIsSheaf_iff_colimit.1 (fun _ =>
+  · refine fun hS => ?_
+    sorry
+  · sorry
+
+/-  · refine fun hS => S.forallYonedaIsSheaf_iff_colimit.1 (fun _ =>
       ((isSheaf_iff_isSheaf_of_type J _).2 (Subcanonical.isSheaf_of_isRepresentable _)).isSheafFor
         S hS)
   · refine fun ⟨h⟩ => ?_
-    sorry -- FALSE
+    sorry -/
 
 end CategoryTheory.GrothendieckTopology
