@@ -225,8 +225,17 @@ lemma largeCurriedUliftYonedaLemma_app_app (X : C) (F : Sheaf J (Type (max v v')
 theorem mem_grothendieckTopology_iff_colimit_yoneda {X : C} (S : Sieve X) :
     S ∈ J X ↔ Nonempty (Limits.IsColimit (J.yoneda.mapCocone S.arrows.cocone)) := by
   constructor
-  · refine fun hS => ?_
+  · refine fun hS => Nonempty.intro ?_
+    refine {
+      desc s := ?_
+      fac := ?_
+      uniq := ?_
+    }
     sorry
+    sorry
+    sorry
+    -- #check S.forallYonedaIsSheaf_iff_colimit
+    -- sorry
   · sorry
 
 /-  · refine fun hS => S.forallYonedaIsSheaf_iff_colimit.1 (fun _ =>

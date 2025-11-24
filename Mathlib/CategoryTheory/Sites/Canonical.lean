@@ -324,8 +324,8 @@ noncomputable def canonicalTopology.coforkYoneda {R X : C} (f g : R ⟶ X) [HasC
 
 def fnejzon (R X : C) (f g : R ⟶ X) [HasCoequalizer f g]
     (hUniv : IsUniversalColimit (coequalizer.cofork f g)) :
-    IsColimit (canonicalTopology.coforkYoneda f g) where
-  desc s := by
+    IsColimit (canonicalTopology.coforkYoneda f g) := by
+  sorry -- FALSE ?
 
 
 
