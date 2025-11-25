@@ -220,28 +220,50 @@ lemma largeCurriedUliftYonedaLemma_app_app (X : C) (F : Sheaf J (Type (max v v')
     = (J.uliftYonedaEquiv.trans Equiv.ulift.symm).toIso :=
   rfl
 
+abbrev familyOfElementsPtVal {X : C} {S : Sieve X}
+    (s : Limits.Cocone (S.arrows.diagram ⋙ J.yoneda)) :
+    S.arrows.FamilyOfElements s.pt.val :=
+  (fun _ f hf => J.yonedaEquiv (s.ι.app ⟨Over.mk f, hf⟩))
+
+theorem familyOfElementsPtVal_compatible {X : C} {S : Sieve X}
+    (s : Limits.Cocone (S.arrows.diagram ⋙ J.yoneda)) :
+    (J.familyOfElementsPtVal s).Compatible := by
+  refine (Presieve.compatible_iff_sieveCompatible _).2 (fun Y Z f g hf => ?_)
+  rw [yonedaEquiv_naturality]
+  let : ({ obj := Over.mk (g ≫ f), property := S.downward_closed hf g } : S.arrows.category)
+      ⟶ { obj := Over.mk f, property := hf} :=
+    Over.homMk g
+  simp only [id_obj, ← s.w this, comp_obj, ObjectProperty.ι_obj, Over.forget_obj,
+    Over.mk_left, const_obj_obj, Functor.comp_map, ObjectProperty.ι_map, Over.forget_map,
+    EmbeddingLike.apply_eq_iff_eq]
+  rfl
+
 /-- A sieve of `X` belongs to a subcanonical topology `J` if and only if `yoneda X` is a colimit
   of the diagram associated to `S` composed with the Yoneda embedding into `Sheaf J (Type v)`. -/
-theorem mem_grothendieckTopology_iff_colimit_yoneda {X : C} (S : Sieve X) :
+theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
     S ∈ J X ↔ Nonempty (Limits.IsColimit (J.yoneda.mapCocone S.arrows.cocone)) := by
   constructor
-  · refine fun hS => Nonempty.intro ?_
-    refine {
-      desc s := ?_
-      fac := ?_
-      uniq := ?_
-    }
-    sorry
-    sorry
-    sorry
+  · exact fun hS => Nonempty.intro {
+      desc s := J.yonedaEquiv.invFun ((s.pt.cond.isSheafFor S hS).amalgamate
+        (J.familyOfElementsPtVal s) (J.familyOfElementsPtVal_compatible s))
+      fac s j := by
+        simp only [id_obj, comp_obj, ObjectProperty.ι_obj, Over.forget_obj, mapCocone_pt,
+          Limits.Cocone.whisker_pt, Over.forgetCocone_pt, const_obj_obj, mapCocone_ι_app,
+          Limits.Cocone.whisker_ι, whiskerLeft_app, Over.forgetCocone_ι_app, Equiv.invFun_as_coe,
+          yonedaEquiv_symm_naturality_left, Presieve.IsSheafFor.valid_glue _ _ _ j.property,
+          familyOfElementsPtVal, J.yonedaEquiv.symm_apply_apply]
+        rfl
+      uniq s m hm := by
+        have h := (s.pt.cond.isSheafFor S hS) (J.familyOfElementsPtVal s)
+          (J.familyOfElementsPtVal_compatible s)
+        refine J.yonedaEquiv.eq_symm_apply.2 (h.unique ?_ ?_)
+        · intro _ _ _
+          rw [familyOfElementsPtVal, J.yonedaEquiv_naturality m, ← hm]
+          rfl
+        · exact (s.pt.cond.isSheafFor S hS).isAmalgamation (familyOfElementsPtVal_compatible J s)
+      }
     -- #check S.forallYonedaIsSheaf_iff_colimit
-    -- sorry
-  · sorry
-
-/-  · refine fun hS => S.forallYonedaIsSheaf_iff_colimit.1 (fun _ =>
-      ((isSheaf_iff_isSheaf_of_type J _).2 (Subcanonical.isSheaf_of_isRepresentable _)).isSheafFor
-        S hS)
   · refine fun ⟨h⟩ => ?_
-    sorry -/
+
 
 end CategoryTheory.GrothendieckTopology
