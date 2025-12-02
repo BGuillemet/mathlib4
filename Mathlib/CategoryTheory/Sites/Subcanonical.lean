@@ -6,6 +6,8 @@ Authors: Dagur Asgeirsson
 import Mathlib.CategoryTheory.Limits.Preserves.Ulift
 import Mathlib.CategoryTheory.Sites.Canonical
 import Mathlib.CategoryTheory.Sites.Whiskering
+import Mathlib.CategoryTheory.Sites.Closed
+import Mathlib.CategoryTheory.Sites.Coverage
 /-!
 
 # Subcanonical Grothendieck topologies
@@ -238,6 +240,74 @@ theorem familyOfElementsPtVal_compatible {X : C} {S : Sieve X}
     EmbeddingLike.apply_eq_iff_eq]
   rfl
 
+@[simps]
+def compatibleYonedaFamily_toCocone (F : Sheaf J (Type v)) {X : C} (R : Presieve X)
+    (x : Presieve.FamilyOfElements F.val R) (hx : x.Compatible) :
+    Limits.Cocone (R.diagram ⋙ J.yoneda) where
+  pt := F
+  ι := {
+    app := fun ⟨f, hf⟩ => J.yonedaEquiv.invFun (x f.hom hf)
+    naturality := fun ⟨f, hf⟩ ⟨g, hg⟩ φ => by
+      simp [J.yonedaEquiv_symm_naturality_left, hx φ.left (𝟙 _) hg hf]
+    }
+
+def AtomicPrecoverage {X : C} (R : Presieve X) : Precoverage C :=
+  sInf (fun J => R ∈ J.coverings X)
+
+-- FALSE
+theorem isSheaf_sInf_mem {X : C} (S : Sieve X) (P : Cᵒᵖ ⥤ Type max u v) :
+    Presieve.IsSheaf (sInf fun J => S ∈ J X) P ↔ Presieve.IsSheafFor P S.arrows := by
+  constructor <;> intro hP
+  · exact hP S ((mem_sInf _ S).2 fun _ => id)
+  · have : (sInf fun J => S ∈ J X : GrothendieckTopology C).toPrecoverage.HasPullbacks := by
+      refine { hasPullbacks_of_mem {X Y R} f hR := { hasPullback {Z g} hg := ?_ } }
+      simp only [toPrecoverage, toCoverage, mem_sInf] at hR
+      rw []
+      sorry -- inutile
+
+    rw [← (Coverage.gi C).l_u_eq (sInf _), Presieve.isSheaf_coverage]
+    intro X Y hR
+    simp only [toCoverage, mem_sInf] at hR
+
+    -- have := (Coverage.gi C).gc.u_sInf
+    sorry
+
+theorem isSheaf_sup (K L : GrothendieckTopology C) (P : Cᵒᵖ ⥤ Type max u v) :
+    Presieve.IsSheaf (K ⊔ L) P ↔ Presieve.IsSheaf K P ∧ Presieve.IsSheaf L P := by
+  rw [← (Coverage.gi C).l_u_eq K, ← (Coverage.gi C).l_u_eq L, ← (Coverage.gi C).gc.l_sup,
+    Presieve.isSheaf_sup, (Coverage.gi C).l_u_eq K, (Coverage.gi C).l_u_eq L]
+
+-- FALSE
+theorem bfejvnjkeomzjzlbf (X : C) (S : Sieve X)
+    (hS : ∀ F : Sheaf J (Type max u v), Presieve.IsSheafFor F.val S.arrows) :
+    S ∈ J X := by
+  let s : Set (GrothendieckTopology C) := fun K =>
+    ∀ P : Cᵒᵖ ⥤ (Type max u v), Presieve.IsSheaf K P → Presieve.IsSheafFor P S.arrows
+  let J₂ := J ⊔ (sInf s)
+  have : J = J₂ := by
+    refine topology_eq_iff_same_sheaves.2 (fun P => ?_)
+    constructor <;> intro hP
+    · unfold J₂
+      refine (isSheaf_sup _ _ _).2 ⟨hP, ?_⟩
+      sorry
+    · exact Presieve.isSheaf_of_le P le_sup_left hP
+  sorry
+
+-- FALSE
+theorem bfejzlbf (X : C) (S : Sieve X)
+    (hS : ∀ F : Sheaf J (Type max u v), Presieve.IsSheafFor F.val S.arrows) :
+    S ∈ J X := by
+  let s : Set (GrothendieckTopology C) := fun K => S ∈ K X
+  let J₂ := J ⊔ (sInf s)
+  have : J = J₂ := by
+    refine topology_eq_iff_same_sheaves.2 (fun P => ?_)
+    constructor <;> intro hP
+    · unfold J₂
+      refine (isSheaf_sup _ _ _).2 ⟨hP, ?_⟩
+      sorry
+    · exact Presieve.isSheaf_of_le P le_sup_left hP
+  sorry
+
 /-- A sieve of `X` belongs to a subcanonical topology `J` if and only if `yoneda X` is a colimit
   of the diagram associated to `S` composed with the Yoneda embedding into `Sheaf J (Type v)`. -/
 theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
@@ -262,8 +332,21 @@ theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
           rfl
         · exact (s.pt.cond.isSheafFor S hS).isAmalgamation (familyOfElementsPtVal_compatible J s)
       }
-    -- #check S.forallYonedaIsSheaf_iff_colimit
   · refine fun ⟨h⟩ => ?_
-
+    have (F : Sheaf J (Type v)) : Presieve.IsSheafFor F.val S.arrows := by
+      refine fun x hx => ?_
+      use J.yonedaEquiv (h.desc (J.compatibleYonedaFamily_toCocone _ _ x hx))
+      constructor
+      · intro _ f hf
+        rw [J.yonedaEquiv_naturality]
+        have : J.yoneda.map f = (J.yoneda.mapCocone S.arrows.cocone).ι.app ⟨Over.mk f, hf⟩ :=
+          rfl
+        rw [this, h.fac]
+        simp
+      · intro a ha
+        rw [← h.uniq _ (J.yonedaEquiv.invFun a)
+          fun ⟨_, hf⟩ => by simp [yonedaEquiv_symm_naturality_left, ha _ hf]]
+        exact J.yonedaEquiv.symm_apply_eq.1 rfl
+    sorry
 
 end CategoryTheory.GrothendieckTopology
