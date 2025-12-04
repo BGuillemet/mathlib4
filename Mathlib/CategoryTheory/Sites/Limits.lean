@@ -258,6 +258,13 @@ noncomputable def isoColimitOverYonedaCompPresheafToSheaf' [UnivLE.{max u v w, m
     (((presheafToSheaf _ _).mapIso (natIsoColimitOverYoneda' F.val)).trans
     (preservesColimitIso (presheafToSheaf _ _) (overYoneda' F.val)))
 
+noncomputable def isoColimitOverYonedaCompPresheafToSheaf''
+    [HasWeakSheafify J (Type max u v)] (F : Sheaf J (Type max u v)) :
+    F ≅ colimit (overYoneda' F.val ⋙ (presheafToSheaf J (Type max u v))) :=
+  (sheafificationIso F).trans
+    (((presheafToSheaf _ _).mapIso (natIsoColimitOverYoneda' F.val)).trans
+    (preservesColimitIso (presheafToSheaf _ _) (overYoneda' F.val)))
+
 end isoColimitOverYoneda
 
 end Sheaf

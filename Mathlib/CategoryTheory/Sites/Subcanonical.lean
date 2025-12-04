@@ -293,20 +293,28 @@ theorem bfejvnjkeomzjzlbf (X : C) (S : Sieve X)
     · exact Presieve.isSheaf_of_le P le_sup_left hP
   sorry
 
--- FALSE
-theorem bfejzlbf (X : C) (S : Sieve X)
-    (hS : ∀ F : Sheaf J (Type max u v), Presieve.IsSheafFor F.val S.arrows) :
+omit [J.Subcanonical] in
+theorem mem_of_isSheafFor_pullback (X : C) (S : Sieve X)
+    (hS : ∀ (F : Sheaf J (Type max u v)) {Y : C} {f : Y ⟶ X},
+      Presieve.IsSheafFor F.val (S.pullback f).arrows) :
     S ∈ J X := by
-  let s : Set (GrothendieckTopology C) := fun K => S ∈ K X
-  let J₂ := J ⊔ (sInf s)
+  let J₂ := J ⊔ (S.arrows.skyscraperPrecoverage.toGrothendieck')
   have : J = J₂ := by
     refine topology_eq_iff_same_sheaves.2 (fun P => ?_)
     constructor <;> intro hP
     · unfold J₂
       refine (isSheaf_sup _ _ _).2 ⟨hP, ?_⟩
-      sorry
+      rw [S.arrows.skyscraperPrecoverage.isSheaf_toGrothendieck'_iff]
+      intro Y Z f R hR
+      cases hR
+      rw [Sieve.generate_sieve]
+      exact hS ⟨P, (isSheaf_iff_isSheaf_of_type J P).2 hP⟩
     · exact Presieve.isSheaf_of_le P le_sup_left hP
-  sorry
+  rw [this]
+  apply le_sup_right (a := J)
+  rw [← S.generate_sieve]
+  apply Precoverage.generate_mem_toGrothendieck'
+  simp
 
 /-- A sieve of `X` belongs to a subcanonical topology `J` if and only if `yoneda X` is a colimit
   of the diagram associated to `S` composed with the Yoneda embedding into `Sheaf J (Type v)`. -/
@@ -348,5 +356,8 @@ theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
           fun ⟨_, hf⟩ => by simp [yonedaEquiv_symm_naturality_left, ha _ hf]]
         exact J.yonedaEquiv.symm_apply_eq.1 rfl
     sorry
+
+theorem fnejzi (F : Sheaf (Sheaf.canonicalTopology C) (Type max u v)) : IsRepresentable F.val := by
+    #check natIsoColimitOverYoneda'.{u, v, max u v} F.val
 
 end CategoryTheory.GrothendieckTopology
