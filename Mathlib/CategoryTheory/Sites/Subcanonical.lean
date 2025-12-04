@@ -3,11 +3,13 @@ Copyright (c) 2024 Dagur Asgeirsson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Dagur Asgeirsson
 -/
-import Mathlib.CategoryTheory.Limits.Preserves.Ulift
-import Mathlib.CategoryTheory.Sites.Canonical
-import Mathlib.CategoryTheory.Sites.Whiskering
-import Mathlib.CategoryTheory.Sites.Closed
-import Mathlib.CategoryTheory.Sites.Coverage
+module
+
+public import Mathlib.CategoryTheory.Limits.Preserves.Ulift
+public import Mathlib.CategoryTheory.Sites.Canonical
+public import Mathlib.CategoryTheory.Sites.Whiskering
+public import Mathlib.CategoryTheory.Sites.Closed
+public import Mathlib.CategoryTheory.Sites.Coverage
 /-!
 
 # Subcanonical Grothendieck topologies
@@ -15,6 +17,8 @@ import Mathlib.CategoryTheory.Sites.Coverage
 This file provides some API for the Yoneda embedding into the category of sheaves for a
 subcanonical Grothendieck topology.
 -/
+
+@[expose] public section
 
 universe v' v u
 
@@ -126,15 +130,27 @@ def uliftYonedaEquiv {X : C} {F : Sheaf J (Type (max v v'))} :
     ((uliftYoneda.{v'} J).obj X ⟶ F) ≃ F.val.obj (op X) :=
   (fullyFaithfulSheafToPresheaf _ _).homEquiv.trans CategoryTheory.uliftYonedaEquiv
 
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv := uliftYonedaEquiv
+
 theorem uliftYonedaEquiv_apply {X : C} {F : Sheaf J (Type (max v v'))}
     (f : J.uliftYoneda.obj X ⟶ F) : uliftYonedaEquiv.{v'} J f = f.val.app (op X) ⟨𝟙 X⟩ :=
   rfl
 
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_apply := uliftYonedaEquiv_apply
+
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_apply := uliftYonedaEquiv_apply
+
 @[simp]
 theorem uliftYonedaEquiv_symm_app_apply {X : C} {F : Sheaf J (Type (max v v'))}
     (x : F.val.obj (op X)) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
-      (J.uliftYonedaEquiv.symm x).val.app Y ⟨f⟩ = F.val.map f.op x :=
+    (J.uliftYonedaEquiv.symm x).val.app Y ⟨f⟩ = F.val.map f.op x :=
   rfl
+
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_symm_app_apply :=
+  uliftYonedaEquiv_symm_app_apply
+
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_symm_app_apply :=
+  uliftYonedaEquiv_symm_app_apply
 
 /-- See also `uliftYonedaEquiv_naturality'` for a more general version. -/
 lemma uliftYonedaEquiv_naturality {X Y : C} {F : Sheaf J (Type (max v v'))}
@@ -144,56 +160,80 @@ lemma uliftYonedaEquiv_naturality {X Y : C} {F : Sheaf J (Type (max v v'))}
   rw [← f.val.naturality]
   simp [uliftYoneda]
 
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_naturality :=
+  uliftYonedaEquiv_naturality
+
 /-- Variant of `uliftYonedaEquiv_naturality` with general `g`. This is technically strictly more
 general than `uliftYonedaEquiv_naturality`, but `uliftYonedaEquiv_naturality` is sometimes
 preferable because it can avoid the "motive is not type correct" error. -/
 lemma uliftYonedaEquiv_naturality' {X Y : Cᵒᵖ} {F : Sheaf J (Type (max v v'))}
     (f : J.uliftYoneda.obj (unop X) ⟶ F) (g : X ⟶ Y) :
-      F.val.map g (J.uliftYonedaEquiv f) = J.uliftYonedaEquiv (J.uliftYoneda.map g.unop ≫ f) :=
+    F.val.map g (J.uliftYonedaEquiv f) = J.uliftYonedaEquiv (J.uliftYoneda.map g.unop ≫ f) :=
   J.uliftYonedaEquiv_naturality _ _
+
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_naturality' :=
+  uliftYonedaEquiv_naturality'
 
 lemma uliftYonedaEquiv_comp {X : C} {F G : Sheaf J (Type (max v v'))} (α : J.uliftYoneda.obj X ⟶ F)
     (β : F ⟶ G) : J.uliftYonedaEquiv (α ≫ β) = β.val.app _ (J.uliftYonedaEquiv α) :=
   rfl
+
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_comp := uliftYonedaEquiv_comp
 
 lemma uliftYonedaEquiv_uliftYoneda_map {X Y : C} (f : X ⟶ Y) :
     (uliftYonedaEquiv.{v'} J) (J.uliftYoneda.map f) = ⟨f⟩ := by
   rw [uliftYonedaEquiv_apply]
   simp [uliftYoneda]
 
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_yonedaULift_map :=
+  uliftYonedaEquiv_uliftYoneda_map
+
 lemma uliftYonedaEquiv_symm_naturality_left {X X' : C} (f : X' ⟶ X) (F : Sheaf J (Type (max v v')))
-    (x : F.val.obj ⟨X⟩) : J.uliftYoneda.map f ≫ J.uliftYonedaEquiv.symm x = J.uliftYonedaEquiv.symm
-      ((F.val.map f.op) x) := by
+    (x : F.val.obj ⟨X⟩) :
+    J.uliftYoneda.map f ≫ J.uliftYonedaEquiv.symm x =
+      J.uliftYonedaEquiv.symm ((F.val.map f.op) x) := by
   apply J.uliftYonedaEquiv.injective
   simp only [uliftYonedaEquiv_comp, Equiv.apply_symm_apply]
   rw [uliftYonedaEquiv_uliftYoneda_map]
   rfl
 
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_symm_naturality_left :=
+  uliftYonedaEquiv_symm_naturality_left
+
 lemma uliftYonedaEquiv_symm_naturality_right (X : C) {F F' : Sheaf J (Type (max v v'))}
     (f : F ⟶ F') (x : F.val.obj ⟨X⟩) :
-      J.uliftYonedaEquiv.symm x ≫ f = J.uliftYonedaEquiv.symm (f.val.app ⟨X⟩ x) := by
+    J.uliftYonedaEquiv.symm x ≫ f = J.uliftYonedaEquiv.symm (f.val.app ⟨X⟩ x) := by
   apply J.uliftYonedaEquiv.injective
   simp [uliftYonedaEquiv_comp]
+
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_symm_naturality_right :=
+  uliftYonedaEquiv_symm_naturality_right
 
 /-- See also `map_yonedaEquiv'` for a more general version. -/
 lemma map_uliftYonedaEquiv {X Y : C} {F : Sheaf J (Type (max v v'))}
     (f : J.uliftYoneda.obj X ⟶ F) (g : Y ⟶ X) :
-      F.val.map g.op (J.uliftYonedaEquiv f) = f.val.app (op Y) ⟨g⟩ := by
+    F.val.map g.op (J.uliftYonedaEquiv f) = f.val.app (op Y) ⟨g⟩ := by
   rw [uliftYonedaEquiv_naturality, uliftYonedaEquiv_comp, uliftYonedaEquiv_uliftYoneda_map]
+
+@[deprecated (since := "2025-11-10")] alias map_yonedaULiftEquiv := map_uliftYonedaEquiv
 
 /-- Variant of `map_uliftYonedaEquiv` with general `g`. This is technically strictly more general
 than `map_uliftYonedaEquiv`, but `map_uliftYonedaEquiv` is sometimes preferable because it
 can avoid the "motive is not type correct" error. -/
 lemma map_uliftYonedaEquiv' {X Y : Cᵒᵖ} {F : Sheaf J (Type (max v v'))}
-    (f : J.uliftYoneda.obj (unop X) ⟶ F)
-    (g : X ⟶ Y) : F.val.map g (J.uliftYonedaEquiv f) = f.val.app Y ⟨g.unop⟩ := by
+    (f : J.uliftYoneda.obj (unop X) ⟶ F) (g : X ⟶ Y) :
+    F.val.map g (J.uliftYonedaEquiv f) = f.val.app Y ⟨g.unop⟩ := by
   rw [uliftYonedaEquiv_naturality', uliftYonedaEquiv_comp, uliftYonedaEquiv_uliftYoneda_map]
 
-lemma yonedaULeftEquiv_symm_map {X Y : Cᵒᵖ} (f : X ⟶ Y) {F : Sheaf J (Type (max v v'))}
+@[deprecated (since := "2025-11-10")] alias map_yonedaULiftEquiv' := map_uliftYonedaEquiv'
+
+lemma uliftYonedaEquiv_symm_map {X Y : Cᵒᵖ} (f : X ⟶ Y) {F : Sheaf J (Type (max v v'))}
     (t : F.val.obj X) : J.uliftYonedaEquiv.symm (F.val.map f t) =
       J.uliftYoneda.map f.unop ≫ J.uliftYonedaEquiv.symm t := by
   obtain ⟨u, rfl⟩ := J.uliftYonedaEquiv.surjective t
   rw [uliftYonedaEquiv_naturality', Equiv.symm_apply_apply, Equiv.symm_apply_apply]
+
+@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_symm_map := uliftYonedaEquiv_symm_map
 
 /-- Two morphisms of sheaves of types `P ⟶ Q` coincide if the precompositions
 with morphisms `uliftYoneda.obj X ⟶ P` agree. -/
@@ -203,6 +243,8 @@ lemma hom_ext_uliftYoneda {P Q : Sheaf J (Type (max v v'))} {f g : P ⟶ Q}
   ext X x
   simpa only [uliftYonedaEquiv_comp, Equiv.apply_symm_apply]
     using congr_arg (J.uliftYonedaEquiv) (h _ (J.uliftYonedaEquiv.symm x))
+
+@[deprecated (since := "2025-11-10")] alias hom_ext_yonedaULift := hom_ext_uliftYoneda
 
 /-- A variant of the curried version of the Yoneda lemma with a raise in the universe level. -/
 def largeCurriedUliftYonedaLemma :

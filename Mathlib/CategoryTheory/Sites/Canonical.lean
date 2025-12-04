@@ -3,12 +3,14 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import Mathlib.CategoryTheory.Sites.Sheaf
-import Mathlib.CategoryTheory.Sites.Sheafification
-import Mathlib.CategoryTheory.Sites.Whiskering
-import Mathlib.CategoryTheory.Sites.Limits
-import Mathlib.CategoryTheory.EffectiveEpi.Basic
-import Mathlib.CategoryTheory.Limits.VanKampen
+module
+
+public import Mathlib.CategoryTheory.Sites.Sheaf
+public import Mathlib.CategoryTheory.Sites.Whiskering
+public import Mathlib.CategoryTheory.Sites.Sheafification
+public import Mathlib.CategoryTheory.Sites.Limits
+public import Mathlib.CategoryTheory.EffectiveEpi.Basic
+public import Mathlib.CategoryTheory.Limits.VanKampen
 
 /-!
 # The canonical topology on a category
@@ -35,6 +37,8 @@ equivalently it is subcanonical iff every representable presheaf is a sheaf.
 * https://stacks.math.columbia.edu/tag/00Z9
 * https://math.stackexchange.com/a/358709/
 -/
+
+@[expose] public section
 
 
 universe w v u
@@ -262,6 +266,8 @@ for the category of types. -/
 @[pp_with_univ, simps!]
 def uliftYoneda [J.Subcanonical] : C ⥤ Sheaf J (Type max v w) :=
   J.yoneda ⋙ sheafCompose J uliftFunctor.{w}
+
+@[deprecated (since := "2025-11-10")] alias yonedaULift := uliftYoneda
 
 /-- If `C` is a category with `[Category.{max w v} C]`, this is the isomorphism
 `uliftYoneda.{w} (C := C) ≅ yoneda`. -/

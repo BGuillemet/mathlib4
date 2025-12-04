@@ -3,9 +3,12 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang, Joël Riou
 -/
-import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Pullbacks
-import Mathlib.CategoryTheory.Sites.CompatibleSheafification
-import Mathlib.CategoryTheory.Sites.LocallyInjective
+module
+
+public import Mathlib.CategoryTheory.Sites.Subsheaf
+public import Mathlib.CategoryTheory.Sites.CompatibleSheafification
+public import Mathlib.CategoryTheory.Sites.LocallyInjective
+public import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Pullbacks
 /-!
 
 # Locally surjective morphisms
@@ -23,6 +26,8 @@ import Mathlib.CategoryTheory.Sites.LocallyInjective
   surjective iff it is epi
 
 -/
+
+@[expose] public section
 
 
 universe v u w v' u' w'
