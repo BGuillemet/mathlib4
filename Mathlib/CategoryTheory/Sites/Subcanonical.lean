@@ -251,47 +251,10 @@ def compatibleYonedaFamily_toCocone (F : Sheaf J (Type v)) {X : C} (R : Presieve
       simp [J.yonedaEquiv_symm_naturality_left, hx φ.left (𝟙 _) hg hf]
     }
 
-def AtomicPrecoverage {X : C} (R : Presieve X) : Precoverage C :=
-  sInf (fun J => R ∈ J.coverings X)
-
--- FALSE
-theorem isSheaf_sInf_mem {X : C} (S : Sieve X) (P : Cᵒᵖ ⥤ Type max u v) :
-    Presieve.IsSheaf (sInf fun J => S ∈ J X) P ↔ Presieve.IsSheafFor P S.arrows := by
-  constructor <;> intro hP
-  · exact hP S ((mem_sInf _ S).2 fun _ => id)
-  · have : (sInf fun J => S ∈ J X : GrothendieckTopology C).toPrecoverage.HasPullbacks := by
-      refine { hasPullbacks_of_mem {X Y R} f hR := { hasPullback {Z g} hg := ?_ } }
-      simp only [toPrecoverage, toCoverage, mem_sInf] at hR
-      rw []
-      sorry -- inutile
-
-    rw [← (Coverage.gi C).l_u_eq (sInf _), Presieve.isSheaf_coverage]
-    intro X Y hR
-    simp only [toCoverage, mem_sInf] at hR
-
-    -- have := (Coverage.gi C).gc.u_sInf
-    sorry
-
 theorem isSheaf_sup (K L : GrothendieckTopology C) (P : Cᵒᵖ ⥤ Type max u v) :
     Presieve.IsSheaf (K ⊔ L) P ↔ Presieve.IsSheaf K P ∧ Presieve.IsSheaf L P := by
   rw [← (Coverage.gi C).l_u_eq K, ← (Coverage.gi C).l_u_eq L, ← (Coverage.gi C).gc.l_sup,
     Presieve.isSheaf_sup, (Coverage.gi C).l_u_eq K, (Coverage.gi C).l_u_eq L]
-
--- FALSE
-theorem bfejvnjkeomzjzlbf (X : C) (S : Sieve X)
-    (hS : ∀ F : Sheaf J (Type max u v), Presieve.IsSheafFor F.val S.arrows) :
-    S ∈ J X := by
-  let s : Set (GrothendieckTopology C) := fun K =>
-    ∀ P : Cᵒᵖ ⥤ (Type max u v), Presieve.IsSheaf K P → Presieve.IsSheafFor P S.arrows
-  let J₂ := J ⊔ (sInf s)
-  have : J = J₂ := by
-    refine topology_eq_iff_same_sheaves.2 (fun P => ?_)
-    constructor <;> intro hP
-    · unfold J₂
-      refine (isSheaf_sup _ _ _).2 ⟨hP, ?_⟩
-      sorry
-    · exact Presieve.isSheaf_of_le P le_sup_left hP
-  sorry
 
 omit [J.Subcanonical] in
 theorem mem_of_isSheafFor_pullback (X : C) (S : Sieve X)
@@ -359,5 +322,6 @@ theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
 
 theorem fnejzi (F : Sheaf (Sheaf.canonicalTopology C) (Type max u v)) : IsRepresentable F.val := by
     #check natIsoColimitOverYoneda'.{u, v, max u v} F.val
+    sorry
 
 end CategoryTheory.GrothendieckTopology
