@@ -3,8 +3,10 @@ Copyright (c) 2025 Benoît Guillemet. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benoît Guillemet
 -/
-import Mathlib.CategoryTheory.Limits.IndYoneda
-import Mathlib.CategoryTheory.Limits.Preserves.Ulift
+module
+
+public import Mathlib.CategoryTheory.Limits.IndYoneda
+public import Mathlib.CategoryTheory.Limits.Preserves.Ulift
 
 /-!
 # Isomorphism with a colimit of representable
@@ -14,6 +16,9 @@ We give the natural isomorphism between natural transformations `F ⟶ G` and ob
 sections of `G` over sections of `F`.
 We deduce an isomorphism between any presheaf `F` and a colimit of representable presheaves.
 -/
+
+@[expose] public section
+
 
 universe u v w
 

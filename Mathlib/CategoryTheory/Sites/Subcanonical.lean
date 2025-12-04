@@ -138,16 +138,11 @@ theorem uliftYonedaEquiv_apply {X : C} {F : Sheaf J (Type (max v v'))}
 
 @[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_apply := uliftYonedaEquiv_apply
 
-@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_apply := uliftYonedaEquiv_apply
-
 @[simp]
 theorem uliftYonedaEquiv_symm_app_apply {X : C} {F : Sheaf J (Type (max v v'))}
     (x : F.val.obj (op X)) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
     (J.uliftYonedaEquiv.symm x).val.app Y ⟨f⟩ = F.val.map f.op x :=
   rfl
-
-@[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_symm_app_apply :=
-  uliftYonedaEquiv_symm_app_apply
 
 @[deprecated (since := "2025-11-10")] alias yonedaULiftEquiv_symm_app_apply :=
   uliftYonedaEquiv_symm_app_apply
