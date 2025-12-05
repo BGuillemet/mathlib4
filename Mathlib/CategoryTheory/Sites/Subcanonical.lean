@@ -316,6 +316,39 @@ theorem mem_of_isSheafFor_pullback (X : C) (S : Sieve X)
   apply Precoverage.generate_mem_toGrothendieck'
   simp
 
+@[simps!]
+def _root_.CategoryTheory.Sieve.pullbackFunctorNatTrans {X Y : C} (S : Sieve X) (f : Y ⟶ X) :
+    (S.pullback f).functor ⟶ S.functor where
+  app Z := fun ⟨g, hg⟩ => ⟨g ≫ f, hg⟩
+
+theorem _root_.CategoryTheory.Sieve.isPullback {X Y : C} (S : Sieve X) (f : Y ⟶ X) :
+    IsPullback (S.pullback f).functorInclusion (S.pullbackFunctorNatTrans f)
+      (CategoryTheory.yoneda.map f) S.functorInclusion := by
+  have (t : Limits.PullbackCone (CategoryTheory.yoneda.map f) S.functorInclusion) (Z : Cᵒᵖ)
+      (s : t.pt.obj Z) : t.fst.app Z s ≫ f = (t.snd.app Z s).1 := by
+    change (t.fst ≫ CategoryTheory.yoneda.map f).app Z s = (t.snd ≫ S.functorInclusion).app Z s
+    rw [t.condition]
+  refine IsPullback.mk { w := rfl } ⟨Limits.PullbackCone.IsLimit.mk _ ?_ ?_ ?_ ?_⟩ <;> intro t
+  · refine NatTrans.mk (fun Z => ?_) (fun Z Z' g => ?_)
+    · refine fun s => ⟨t.fst.app Z s, ?_⟩
+      rw [Sieve.pullback_apply, this]
+      exact (t.snd.app Z s).2
+    · ext s
+      apply Subtype.ext
+      change (t.pt.map g ≫ t.fst.app Z') s = _
+      rw [t.fst.naturality]
+      rfl
+  · ext Z s
+    simp
+  · ext Z s
+    apply Subtype.ext
+    simp [this]
+  · intro m hm _
+    ext Z s
+    apply Subtype.ext
+    change (m ≫ (Sieve.pullback f S).functorInclusion).app Z s = t.fst.app Z s
+    rw [hm]
+
 /-- A sieve of `X` belongs to a subcanonical topology `J` if and only if `yoneda X` is a colimit
   of the diagram associated to `S` composed with the Yoneda embedding into `Sheaf J (Type v)`. -/
 theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
@@ -340,7 +373,8 @@ theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
           rfl
         · exact (s.pt.cond.isSheafFor S hS).isAmalgamation (familyOfElementsPtVal_compatible J s)
       }
-  · refine fun ⟨h⟩ => ?_
+  · refine fun ⟨h⟩ => J.mem_of_isSheafFor_pullback _ _ (fun F Y f => ?_)
+
     have (F : Sheaf J (Type v)) : Presieve.IsSheafFor F.val S.arrows := by
       refine fun x hx => ?_
       use J.yonedaEquiv (h.desc (J.compatibleYonedaFamily_toCocone _ _ x hx))
