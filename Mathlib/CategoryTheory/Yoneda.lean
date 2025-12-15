@@ -44,7 +44,7 @@ def yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁ where
 
 /-- Variant of the Yoneda embedding which allows a raise in the universe level
 for the category of types. -/
-@[pp_with_univ, simps!]
+@[pp_with_univ, simps! obj_obj obj_map map_app]
 def uliftYoneda : C ⥤ Cᵒᵖ ⥤ Type (max w v₁) :=
   yoneda ⋙ (whiskeringRight _ _ _).obj uliftFunctor.{w}
 
@@ -462,6 +462,15 @@ lemma IsRepresentable.mk' {F : Cᵒᵖ ⥤ Type v₁} {X : C} (e : yoneda.obj X 
 
 instance {X : C} : IsRepresentable (yoneda.obj X) :=
   IsRepresentable.mk' (Iso.refl _)
+
+/-- Alternative constructor for `F.IsRepresentable`, which takes as an input an
+isomorphism `yoneda.obj X ≅ F`. -/
+lemma IsRepresentable.mk'' {F : Cᵒᵖ ⥤ Type max v v₁} {X : C} (e : uliftYoneda.obj X ≅ F) :
+    F.IsRepresentable :=
+  ((RepresentableBy.equivUliftYonedaIso F X).symm e).isRepresentable
+
+instance {X : C} : IsRepresentable (uliftYoneda.obj.{v} X) :=
+  IsRepresentable.mk'' (Iso.refl _)
 
 /-- A functor `F : C ⥤ Type v₁` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
 -/

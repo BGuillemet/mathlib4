@@ -134,12 +134,25 @@ noncomputable def homEquivLimitOverComp [UnivLE.{max w u, w}] :
     (Types.limitEquivSections (sectionOver.over F ⋙ G)).symm
 
 /-- A functorial version of `homEquivLimitOverComp` -/
-noncomputable def coyonedaOpNatIsoWhiskeringLeftOverCompLim [UnivLE.{max w u, w}] :
+noncomputable def coyonedaOpNatIsoWhiskeringLeftOverCompLim :
     coyoneda.obj (Opposite.op F) ≅
       (whiskeringLeftOver F) ⋙ (whiskeringRightUlift F) ⋙ lim :=
   (coyonedaOpNatIsoWhiskeringLeftOverCompSectionsFunctorSectionOver F).trans
     (isoWhiskerLeft (whiskeringLeftOver F) (isoWhiskerLeft (whiskeringRightUlift F)
     Types.limNatIsoSectionsFunctor.symm))
+
+variable (F : Cᵒᵖ ⥤ Type max u v)
+
+def coyonedaOpNatIsoWhiskeringLeftOverCompSectionsFunctorSectionOver' :
+    coyoneda.obj (Opposite.op F) ≅ (whiskeringLeftOver F) ⋙ sectionsFunctor (sectionOver F) where
+  hom := { app G := (homEquivOverCompSections F G).toFun }
+  inv := { app G := (homEquivOverCompSections F G).invFun }
+
+/-- A functorial version of `homEquivLimitOverComp` -/
+noncomputable def coyonedaOpNatIsoWhiskeringLeftOverCompLim' :
+    coyoneda.obj (Opposite.op F) ≅ (whiskeringLeftOver F) ⋙ lim :=
+  (coyonedaOpNatIsoWhiskeringLeftOverCompSectionsFunctorSectionOver' F) ≪≫
+    (isoWhiskerLeft (whiskeringLeftOver F) Types.limNatIsoSectionsFunctor.symm)
 
 end homEquiv
 
