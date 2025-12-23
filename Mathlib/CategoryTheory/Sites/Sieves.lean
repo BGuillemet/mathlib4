@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Edward Ayers
 -/
 module
 
+public import Mathlib.CategoryTheory.Limits.Final
 public import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 public import Mathlib.Data.Set.BooleanAlgebra
 
@@ -564,6 +565,33 @@ theorem arrows_generate_map_eq_functorPushforward {s : Presieve X} :
   · rintro ⟨_, _, _, ⟨hu⟩, rfl⟩; exact ⟨_, _, _, hu, rfl⟩
   · rintro ⟨_, _, _, hu, rfl⟩; exact ⟨_, _, _, ⟨hu⟩, rfl⟩
 
+@[simps!]
+def generateFunctor (R : Presieve X) :
+    R.category ⥤ (generate R).arrows.category where
+  obj f := ⟨f.obj, ⟨f.obj.left, 𝟙 _, f.obj.hom, f.property, id_comp _⟩⟩
+  map g := Over.homMk g.left
+
+lemma generateFunctor_comp_diagram_generate (R : Presieve X) :
+    generateFunctor R ⋙ (generate R).arrows.diagram = R.diagram :=
+  rfl
+
+-- FALSE ???
+instance (R : Presieve X) : (generateFunctor R).Final where
+  out f := {
+    iso_constant F g := by
+      refine ⟨?_⟩
+      refine NatIso.ofComponents ?_ ?_
+      · intro h
+        simp
+        obtain ⟨_, f, f₂⟩ := f
+        obtain ⟨_, g, g₂⟩ := g
+        simp at f₂ g₂
+      sorry
+    is_nonempty := by
+      obtain ⟨Y, h, g, Hg, H⟩ := f.property
+      exact ⟨Comma.mk { as := () } ⟨Over.mk g, Hg⟩ (Over.homMk h H)⟩
+  }
+
 /-- Given a presieve on `X`, and a sieve on each domain of an arrow in the presieve, we can bind to
 produce a sieve on `X`.
 -/
@@ -731,6 +759,18 @@ lemma pullback_ofObjects_eq_top
   simp only [top_apply, iff_true]
   rw [mem_ofObjects_iff ]
   exact ⟨i, ⟨h ≫ g⟩⟩
+
+/-- The canonical functor from the category associated to any pullback of `S` to the category
+associated to `S`. -/
+@[simps!]
+def pullbackFunctor (S : Sieve X) (f : Y ⟶ X) :
+    (S.pullback f).arrows.category ⥤ S.arrows.category where
+  obj g := ⟨Over.mk (g.obj.hom ≫ f), g.property⟩
+  map h := Over.homMk h.left
+
+theorem diagram_pullback (f : Y ⟶ X) :
+    (S.pullback f).arrows.diagram = S.pullbackFunctor f ⋙ S.arrows.diagram := by
+  rfl
 
 /-- Push a sieve `R` on `Y` forward along an arrow `f : Y ⟶ X`: `gf : Z ⟶ X` is in the sieve if `gf`
 factors through some `g : Z ⟶ Y` which is in `R`.

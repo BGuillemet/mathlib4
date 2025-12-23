@@ -210,7 +210,12 @@ theorem mem_grothendieckTopology_iff_colimit {X : C} (S : Sieve X) :
   · exact fun hS _ => (isSheaf_yoneda_obj _).isSheafFor (canonicalTopology C) S.arrows
       (by rwa [generate_sieve])
   · refine fun h => ?_
-    unfold canonicalTopology
+    unfold canonicalTopology finestTopology
+    refine (GrothendieckTopology.mem_sInf (finestTopologySingle '' Set.range yoneda.obj) S).mpr ?_
+    intro J ⟨F, hF, hJ⟩
+    rw [← hJ]
+    change ∀ (Y : C) (f : Y ⟶ X), Presieve.IsSheafFor F (S.pullback f).arrows
+    intro Y f
     -- still FALSE
     sorry
 

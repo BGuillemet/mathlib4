@@ -479,13 +479,51 @@ def nfdjkzl {X : C} (S : Sieve X) :
     (sectionProperty (S.functor ⋙ uliftFunctor)).FullSubcategory ≅ S.arrows.category :=
   sorry
 
-
 theorem hfjklzhg {X : C} (S : Sieve X) : S.functorDiagram ≅ (sectionProperty S.functor).ι ⋙ Over.forget _ := by
   sorry
 
-def fjkzmjaf {X : C} (S : Sieve X) : S.functorCocone ≅ sectionCocone S.functor
+def fjkzmjaf {X : C} (S : Sieve X) : S.functorCocone ≅ sectionCocone S.functor :=
+  sorry
 
-theorem fkemzjf {X : C} (S : Sieve X) : Nonempty (Limits.IsColimit S.functorCocone)
+variable [HasWeakSheafify J (Type max u v)] in
+theorem fkemzjf {X : C} (S : Sieve X) :
+    Nonempty (Limits.IsColimit ((presheafToSheaf J (Type max u v)).mapCocone S.functorCocone)) :=
+  sorry
+
+variable [HasWeakSheafify J (Type max u v)]
+
+noncomputable def desc {X : C} (S : Sieve X) :
+    Limits.colimit (S.arrows.diagram ⋙ uliftYoneda.{u} J) ⟶ (uliftYoneda.{u} J).obj X :=
+  Limits.colimit.desc _ (J.uliftYoneda.mapCocone S.arrows.cocone)
+
+noncomputable def pullbackCone {X Y : C} (S : Sieve X) (f : Y ⟶ X) :
+    Limits.PullbackCone ((uliftYoneda.{u} J).map f) (J.desc S) := by
+  refine Limits.PullbackCone.mk (J.desc (S.pullback f))
+    (Limits.colimit.pre (S.arrows.diagram ⋙ uliftYoneda.{u} J) (S.pullbackFunctor f))
+    (Limits.colimit.hom_ext fun g => ?_)
+  have : Limits.colimit.ι ((Sieve.pullback f S).arrows.diagram ⋙ uliftYoneda.{u} J) g =
+      Limits.colimit.ι (S.pullbackFunctor f ⋙ S.arrows.diagram ⋙ uliftYoneda.{u} J) g := by
+    congr
+  simp only [id_obj, Sieve.pullback_apply, comp_obj, ObjectProperty.ι_obj, Over.forget_obj, desc,
+    Limits.colimit.ι_desc_assoc, mapCocone_pt, Limits.Cocone.whisker_pt, Over.forgetCocone_pt,
+    mapCocone_ι_app, Limits.Cocone.whisker_ι, whiskerLeft_app, Over.forgetCocone_ι_app,
+    Limits.colimit.pre_desc]
+  simp [this]
+
+theorem colimit_pullback_isPullback' {X Y : C} (S : Sieve X) (f : Y ⟶ X) :
+   IsPullback (J.desc (S.pullback f))
+      (Limits.colimit.pre (S.arrows.diagram ⋙ uliftYoneda.{u} J) (S.pullbackFunctor f))
+      ((uliftYoneda.{u} J).map f) (J.desc S) := by
+
+theorem colimit_pullback_isPullback {X Y : C} (S : Sieve X) (f : Y ⟶ X) :
+    Nonempty (IsPullback (J.desc (S.pullback f))
+      (Limits.colimit.pre (S.arrows.diagram ⋙ uliftYoneda.{u} J) (S.pullbackFunctor f))
+      ((uliftYoneda.{u} J).map f) (J.desc S)) := by
+  have : Limits.ReflectsLimits (sheafToPresheaf J (Type max u v)) :=
+    inferInstance
+  apply this.reflectsLimitsOfShape.reflectsLimit.reflects
+  refine IsPullback.mk { w := ?_ } ⟨Limits.PullbackCone.IsLimit.mk _ ?_ ?_ ?_ ?_⟩
+  simp [desc]
 
 /-- A sieve of `X` belongs to a subcanonical topology `J` if and only if `yoneda X` is a colimit
   of the diagram associated to `S` composed with the Yoneda embedding into `Sheaf J (Type v)`. -/
@@ -539,7 +577,13 @@ theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
 
 open Limits Opposite
 
-def isColimitGenerate {X : C} (S : Presieve X) :
+lemma hfjezkl {F : Sheaf J (Type max u v)} (S : Sieve F)
+    (h : Nonempty (IsColimit S.arrows.cocone)) :
+    S ∈ Sheaf.canonicalTopology (Sheaf J (Type max u v)) F := by
+  --have := S.forallYonedaIsSheaf_iff_colimit.2 h
+  exact (Sheaf.mem_grothendieckTopology_iff_colimit S).mpr h -- ?????? => not proven
+
+theorem isColimitGenerate {X : C} (S : Presieve X) :
     Nonempty (IsColimit (J.yoneda.mapCocone (Sieve.generate S).arrows.cocone)) ↔
       Nonempty (IsColimit (J.yoneda.mapCocone S.cocone)) := by
   sorry
@@ -556,7 +600,7 @@ theorem fnejzi (F : Sheaf (Sheaf.canonicalTopology (Sheaf J C)) (Type max u v)) 
     let S : Presieve (colimit (overYoneda'.{u, v, max u v} F.val)) :=
       fun Y => { f | overYonedaArrows F.val Y f }
 
-    have : (Limits.colimit (overYoneda'.{u, v, max u v} F.val)).IsRepresentable := by
+    have : (colimit (overYoneda'.{u, v, max u v} F.val)).IsRepresentable := by
       sorry
       -- suffices Nonempty (Limits.IsColimit ()) by
       --  sorry
