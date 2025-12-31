@@ -576,7 +576,7 @@ lemma generateFunctor_comp_diagram_generate (R : Presieve X) :
   rfl
 
 -- FALSE ???
-instance (R : Presieve X) : (generateFunctor R).Final where
+/- instance (R : Presieve X) : (generateFunctor R).Final where
   out f := {
     iso_constant F g := by
       refine ⟨?_⟩
@@ -590,7 +590,7 @@ instance (R : Presieve X) : (generateFunctor R).Final where
     is_nonempty := by
       obtain ⟨Y, h, g, Hg, H⟩ := f.property
       exact ⟨Comma.mk { as := () } ⟨Over.mk g, Hg⟩ (Over.homMk h H)⟩
-  }
+  } -/
 
 /-- Given a presieve on `X`, and a sieve on each domain of an arrow in the presieve, we can bind to
 produce a sieve on `X`.
@@ -769,7 +769,11 @@ def pullbackFunctor (S : Sieve X) (f : Y ⟶ X) :
   map h := Over.homMk h.left
 
 theorem diagram_pullback (f : Y ⟶ X) :
-    (S.pullback f).arrows.diagram = S.pullbackFunctor f ⋙ S.arrows.diagram := by
+    (S.pullback f).arrows.diagram = S.pullbackFunctor f ⋙ S.arrows.diagram :=
+  rfl
+
+theorem diagram_pullback_assoc (f : Y ⟶ X) (F : C ⥤ D) :
+    (S.pullback f).arrows.diagram ⋙ F = S.pullbackFunctor f ⋙ S.arrows.diagram ⋙ F :=
   rfl
 
 /-- Push a sieve `R` on `Y` forward along an arrow `f : Y ⟶ X`: `gf : Z ⟶ X` is in the sieve if `gf`

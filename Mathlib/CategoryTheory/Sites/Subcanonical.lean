@@ -379,6 +379,7 @@ theorem isRepresentable_of_natIso' (F : Cᵒᵖ ⥤ Type*) {G} (i : F ≅ G) [F.
 
 variable [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] (F : Cᵒᵖ ⥤ Type max u v)
 
+@[simp]
 def _root_.CategoryTheory.sectionProperty : ObjectProperty (Over F) :=
   fun G => IsRepresentable G.1
 
@@ -432,6 +433,9 @@ def _root_.CategoryTheory.isColimitSectionCocone : Limits.IsColimit (sectionCoco
     simp only [← h, sectionCocone_ι_app, FunctorToTypes.comp, sectionMk_obj_hom,
       uliftYonedaEquiv_symm_apply_app, op_id, FunctorToTypes.map_id_apply]
 
+instance : Limits.HasColimit ((sectionProperty F).ι ⋙ Over.forget _) where
+  exists_colimit := ⟨⟨_, isColimitSectionCocone F⟩⟩
+
 omit [J.Subcanonical] [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
 variable [HasWeakSheafify J (Type max u v)] in
 theorem isColimitPresheafToSheafMapCoconeSectionCocone :
@@ -443,6 +447,59 @@ theorem isColimitPresheafToSheafMapCoconeSectionCocone :
 
 abbrev _root_.CategoryTheory.Sieve.uliftFunctor {X : C} (S : Sieve X) : Cᵒᵖ ⥤ Type max u v :=
   S.functor ⋙ CategoryTheory.uliftFunctor.{u}
+
+@[simps! app]
+def _root_.CategoryTheory.Sieve.uliftFunctorInclusion {X : C} (S : Sieve X) :
+    S.uliftFunctor ⟶ CategoryTheory.uliftYoneda.obj.{u} X :=
+  ((whiskeringRight _ _ _).obj uliftFunctor.{u}).map S.functorInclusion
+
+@[simps]
+def _root_.CategoryTheory.Sieve.sieveOfUliftSubfunctor {X : C} {R : Cᵒᵖ ⥤ Type max u v}
+    (f : R ⟶ CategoryTheory.uliftYoneda.obj X) : Sieve X where
+  arrows Y g := ∃ t, f.app (op Y) t = { down := g }
+  downward_closed := by
+    rintro Y Z _ ⟨t, ht⟩ g
+    refine ⟨R.map g.op t, ?_⟩
+    rw [FunctorToTypes.naturality _ _ f, ht]
+    simp
+
+omit [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+theorem _root_.CategoryTheory.Sieve.sieveOfUliftSubfunctor_uliftFunctorInclusion {X : C}
+    {S : Sieve X} : Sieve.sieveOfUliftSubfunctor (S.uliftFunctorInclusion) = S := by
+  ext
+  simp only [Sieve.uliftFunctorInclusion_app, Sieve.sieveOfUliftSubfunctor_apply]
+  constructor
+  · rintro ⟨⟨f, hf⟩, h⟩
+    simp only [uliftYoneda_obj_obj, yoneda_obj_obj, ULift.up.injEq] at h
+    simpa [← h]
+  · intro hf
+    exact ⟨⟨_, hf⟩, rfl⟩
+
+omit [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+theorem _root_.CategoryTheory.Sieve.arrows_iff_exists_map_functor {X : C} (S : Sieve X) {Y : C}
+    (f : Y ⟶ X) :
+    S.arrows f ↔
+      ∃ t : CategoryTheory.uliftYoneda.obj Y ⟶ S.uliftFunctor, t ≫ S.uliftFunctorInclusion =
+        CategoryTheory.uliftYoneda.map f := by
+  nth_rw 1 [← S.sieveOfUliftSubfunctor_uliftFunctorInclusion]
+  constructor
+  · refine fun ⟨t, ht⟩ => ⟨CategoryTheory.uliftYonedaEquiv.symm t, ?_⟩
+    ext Z g
+    simp only [uliftYoneda_obj_obj, Sieve.uliftFunctorInclusion_app, yoneda_obj_obj,
+      ULift.up.injEq] at ht
+    simp only [uliftYoneda_obj_obj, comp_obj, Sieve.functor_obj, uliftFunctor_obj,
+      FunctorToTypes.comp, Sieve.uliftFunctorInclusion_app, ← ht, uliftYoneda_map_app,
+      ULift.up.injEq]
+    rfl
+  · refine fun ⟨t, ht⟩ => ⟨CategoryTheory.uliftYonedaEquiv t, ?_⟩
+    have : (t ≫ S.uliftFunctorInclusion).app (op Y) { down := 𝟙 Y} =
+        (CategoryTheory.uliftYoneda.map f).app (op Y) { down := 𝟙 Y} := by
+      rw [ht]
+    simp only [uliftYoneda_obj_obj, yoneda_obj_obj, FunctorToTypes.comp,
+      Sieve.uliftFunctorInclusion_app, uliftYoneda_map_app, Category.id_comp,
+      ULift.up.injEq] at this
+    rw [← this]
+    rfl
 
 @[simps! app]
 def _root_.CategoryTheory.Sieve.homFunctor {X Y : C} {S : Sieve X} {f : Y ⟶ X} (hf : S f) :
@@ -462,22 +519,66 @@ def _root_.CategoryTheory.Sieve.functorSectionPropertyFullSubcategory {X : C} (S
 def _root_.CategoryTheory.Sieve.functorArrowsCategory {X : C} (S : Sieve X) :
     (sectionProperty (S.functor ⋙ uliftFunctor)).FullSubcategory ⥤ S.arrows.category where
   obj := by
-    intro ⟨⟨F, _, f⟩, (_ : F.IsRepresentable)⟩
-    have := (CategoryTheory.uliftYonedaEquiv
-      ((RepresentableBy.equivUliftYonedaIso _ _ F.representableBy).hom ≫ f)).down
+    intro F
+    have := (CategoryTheory.uliftYonedaEquiv (F.obj.left.uliftReprW.hom ≫ F.obj.hom)).down
     exact ⟨Over.mk this.1, this.2⟩
   map := by
     intro ⟨⟨F, _, f⟩, (_ : F.IsRepresentable)⟩ ⟨⟨G, _, g⟩, (_ : G.IsRepresentable)⟩ φ
-    refine Over.homMk ((CategoryTheory.ULiftYoneda.fullyFaithful _).preimage (F.uliftReprW.hom ≫ φ.left ≫ G.uliftReprW.inv)) ?_
-    apply (CategoryTheory.ULiftYoneda.fullyFaithful.{u} _).map_injective
-    ext Y h
-    simp at h
-    simp [CategoryTheory.uliftYonedaEquiv]
+    refine Over.homMk ((CategoryTheory.ULiftYoneda.fullyFaithful _).preimage
+      (F.uliftReprW.hom ≫ φ.left ≫ G.uliftReprW.inv)) ?_
+    apply (ULiftYoneda.fullyFaithful.{u} _).map_injective
+    rw [map_comp]
+    simp -- FALSE ???
     sorry
 
 def nfdjkzl {X : C} (S : Sieve X) :
-    (sectionProperty (S.functor ⋙ uliftFunctor)).FullSubcategory ≅ S.arrows.category :=
-  sorry
+    (sectionProperty S.uliftFunctor).FullSubcategory ≌ S.arrows.category := by
+  unfold Presieve.category
+  fapply Equivalence.mk
+  · refine ObjectProperty.lift _ ?_ ?_
+    · refine Functor.mk ?_ ?_ ?_ ?_
+      · intro ⟨F, (_ : F.left.IsRepresentable)⟩
+        exact Over.mk ((CategoryTheory.ULiftYoneda.fullyFaithful _).preimage
+          (F.left.uliftReprW.hom ≫ F.hom ≫ S.uliftFunctorInclusion))
+      · intro ⟨F, (_ : F.left.IsRepresentable)⟩ ⟨G, (_ : G.left.IsRepresentable)⟩ f
+        refine Over.homMk ((CategoryTheory.ULiftYoneda.fullyFaithful _).preimage
+          (F.left.uliftReprW.hom ≫ f.left ≫ G.left.uliftReprW.inv)) ?_
+        simp only [Over.mk_left, const_obj_obj, Over.mk_hom]
+        apply (ULiftYoneda.fullyFaithful C).map_injective
+        rw [map_comp, (ULiftYoneda.fullyFaithful C).map_preimage,
+          (ULiftYoneda.fullyFaithful C).map_preimage, (ULiftYoneda.fullyFaithful C).map_preimage]
+        simp
+      · intro F
+        have : CommaMorphism.left (𝟙 F) = 𝟙 F.obj.left := rfl
+        exact Over.OverMorphism.ext (by simp [this])
+      · intro _ _ _ f g
+        have : (f ≫ g).left = f.left ≫ g.left := rfl
+        exact Over.OverMorphism.ext (by simp [this, ← FullyFaithful.preimage_comp])
+    · exact fun F => (S.arrows_iff_exists_map_functor _).2
+        ⟨F.obj.left.uliftReprW.hom ≫ F.obj.hom, by simp⟩
+  · refine ObjectProperty.lift _ ?_ ?_
+    · refine Functor.mk ?_ ?_ ?_ ?_
+      · exact fun ⟨f, hf⟩ => Over.mk (CategoryTheory.uliftYonedaEquiv.symm { down := ⟨f.hom, hf⟩ })
+      · intro ⟨f, hf⟩ ⟨g, hg⟩ φ
+        refine Over.homMk (CategoryTheory.uliftYoneda.map φ.left) ?_
+        have : { down := ⟨f.hom, hf⟩ } = S.uliftFunctor.map φ.left.op { down := ⟨g.hom, hg⟩ } := by
+          apply ULift.ext
+          simp [Sieve.functor]
+        simp only [id_obj, comp_obj, Sieve.functor_obj, uliftFunctor_obj, Over.mk_left,
+          const_obj_obj, Over.mk_hom, this]
+        let t : S.uliftFunctor.obj (op g.left) := { down := ⟨g.hom, hg⟩ }
+        exact (CategoryTheory.uliftYonedaEquiv_symm_map φ.left.op t).symm
+      · intro f
+        have : CommaMorphism.left (𝟙 f) = 𝟙 f.obj.left := rfl
+        exact Over.OverMorphism.ext (by simp [this])
+      · intro _ _ _ φ ψ
+        have : (φ ≫ ψ).left = φ.left ≫ ψ.left := rfl
+        exact Over.OverMorphism.ext (by simp [this])
+    · intro ⟨f, hf⟩
+      simp only [sectionProperty, Over.mk_left]
+      infer_instance
+  · sorry
+  · sorry
 
 theorem hfjklzhg {X : C} (S : Sieve X) : S.functorDiagram ≅ (sectionProperty S.functor).ι ⋙ Over.forget _ := by
   sorry
@@ -514,16 +615,47 @@ theorem colimit_pullback_isPullback' {X Y : C} (S : Sieve X) (f : Y ⟶ X) :
    IsPullback (J.desc (S.pullback f))
       (Limits.colimit.pre (S.arrows.diagram ⋙ uliftYoneda.{u} J) (S.pullbackFunctor f))
       ((uliftYoneda.{u} J).map f) (J.desc S) := by
+  sorry
+
+def _root_.CategoryTheory.Sieve.functorIsoColimit {X : C} (S : Sieve X) :
+    S.functor ⋙ uliftFunctor.{u} ≅
+      Limits.colimit (S.arrows.diagram ⋙ CategoryTheory.uliftYoneda.{u}) := by
+  refine (Limits.colimit.isoColimitCocone
+    ⟨_, isColimitSectionCocone (S.functor ⋙ uliftFunctor.{u})⟩).symm ≪≫ ?_
+  refine Limits.HasColimit.isoOfEquivalence ?_ ?_
+  ·
+
+def presheafToSheafFunctorIsoColimit {X : C} (S : Sieve X) :
+    (presheafToSheaf J (Type max u v)).obj (S.functor ⋙ uliftFunctor.{u}) ≅
+      Limits.colimit (S.arrows.diagram ⋙ uliftYoneda.{u} J) := by
+  sorry
 
 theorem colimit_pullback_isPullback {X Y : C} (S : Sieve X) (f : Y ⟶ X) :
     Nonempty (IsPullback (J.desc (S.pullback f))
       (Limits.colimit.pre (S.arrows.diagram ⋙ uliftYoneda.{u} J) (S.pullbackFunctor f))
       ((uliftYoneda.{u} J).map f) (J.desc S)) := by
-  have : Limits.ReflectsLimits (sheafToPresheaf J (Type max u v)) :=
+  refine ⟨{ w := ?_ }, ?_⟩
+  · apply Limits.colimit.hom_ext
+    have : Limits.colimit.desc (S.pullbackFunctor f ⋙ S.arrows.diagram ⋙ J.uliftYoneda) =
+        Limits.colimit.desc ((S.pullback f).arrows.diagram ⋙ J.uliftYoneda) := by
+      congr
+    simp [desc, this]
+  have h₁ : Limits.ReflectsFiniteLimits (sheafToPresheaf J (Type max u v)) := inferInstance
+  have h₂ : Limits.PreservesFiniteLimits (sheafToPresheaf J (Type max u v)) :=
     inferInstance
-  apply this.reflectsLimitsOfShape.reflectsLimit.reflects
-  refine IsPullback.mk { w := ?_ } ⟨Limits.PullbackCone.IsLimit.mk _ ?_ ?_ ?_ ?_⟩
-  simp [desc]
+  apply (h₁.reflects _).reflectsLimit.reflects
+  apply Limits.IsLimit.ofIsoLimit (r := (sheafToPresheaf J (Type max u v)).mapCone
+    (Limits.pullback.cone ((uliftYoneda.{u} J).map f) (J.desc S)))
+  exact Classical.choice
+    ((h₂.preservesFiniteLimits _).preservesLimit.preserves (Limits.pullback.isLimit _ _))
+  refine Limits.WalkingCospan.ext ?_ ?_ ?_
+  · change (sheafToPresheaf _ _).obj (Limits.limit _) ≅ _
+    refine preservesLimitIso _ _ ≪≫ ?_
+    refine NatIso.ofComponents ?_ ?_
+    intro Z
+    refine Limits.limitObjIsoLimitCompEvaluation _ _ ≪≫ ?_
+    simp
+
 
 /-- A sieve of `X` belongs to a subcanonical topology `J` if and only if `yoneda X` is a colimit
   of the diagram associated to `S` composed with the Yoneda embedding into `Sheaf J (Type v)`. -/
