@@ -1092,6 +1092,10 @@ instance functorInclusion_is_mono : Mono S.functorInclusion :=
     ext Y y
     simpa [Subtype.ext_iff] using congr_fun (NatTrans.congr_app h Y) y⟩
 
+lemma yonedaEquiv_comp_functorInclusion {Y : C} (g : S.functor.obj (Opposite.op Y)) :
+    yonedaEquiv.symm g ≫ S.functorInclusion = yoneda.map g.1 :=
+  rfl
+
 -- TODO: Show that when `f` is mono, this is right inverse to `functorInclusion` up to isomorphism.
 /-- A natural transformation to a representable functor induces a sieve. This is the left inverse of
 `functorInclusion`, shown in `sieveOfSubfunctor_functorInclusion`.

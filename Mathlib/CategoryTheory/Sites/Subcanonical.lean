@@ -389,6 +389,20 @@ instance : Category (sectionCategory F) := ObjectProperty.FullSubcategory.catego
 
 instance (G : sectionCategory F) : IsRepresentable G.1.1 := G.2
 
+-- TODO : comprendre pourquoi ces simp lemmas n'existent pas déjà
+
+omit [J.Subcanonical] [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+@[simp]
+lemma _root_.CategoryTheory.section_left_id (G : sectionCategory F) :
+    CommaMorphism.left (𝟙 G) = 𝟙 G.obj.left :=
+  rfl -- Comma.id_left ?
+
+omit [J.Subcanonical] [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+@[simp]
+lemma _root_.CategoryTheory.section_left_comp {G₁ G₂ G₃ : sectionCategory F} (f : G₁ ⟶ G₂)
+    (g : G₂ ⟶ G₃) : CommaMorphism.left (f ≫ g) = f.left ≫ g.left :=
+  rfl
+
 @[simps! obj_left obj_hom]
 def _root_.CategoryTheory.sectionMk {X : C} (s : F.obj (Opposite.op X)) : sectionCategory F where
   obj := Over.mk (CategoryTheory.uliftYonedaEquiv.symm s)
@@ -452,6 +466,22 @@ abbrev _root_.CategoryTheory.Sieve.uliftFunctor {X : C} (S : Sieve X) : Cᵒᵖ 
 def _root_.CategoryTheory.Sieve.uliftFunctorInclusion {X : C} (S : Sieve X) :
     S.uliftFunctor ⟶ CategoryTheory.uliftYoneda.obj.{u} X :=
   ((whiskeringRight _ _ _).obj uliftFunctor.{u}).map S.functorInclusion
+
+omit [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+/-- The presheaf induced by a sieve is a subobject of the yoneda embedding. -/
+instance _root_.CategoryTheory.Sieve.uliftFunctorInclusion_is_mono {X : C} (S : Sieve X) :
+    Mono S.uliftFunctorInclusion :=
+  ⟨fun f g h => by
+    ext Y y
+    refine ULift.ext _ _ (Subtype.ext_iff.2 ?_)
+    simpa using congr_fun (NatTrans.congr_app h Y) y⟩
+
+omit [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+theorem _root_.CategoryTheory.Sieve.uliftYonedaEquiv_comp_uliftFunctorInclusion {X : C}
+    (S : Sieve X) {Y : C} (g : S.uliftFunctor.obj (Opposite.op Y)) :
+    CategoryTheory.uliftYonedaEquiv.symm g ≫ S.uliftFunctorInclusion =
+      CategoryTheory.uliftYoneda.map g.down.1 :=
+  rfl
 
 @[simps]
 def _root_.CategoryTheory.Sieve.sieveOfUliftSubfunctor {X : C} {R : Cᵒᵖ ⥤ Type max u v}
@@ -531,7 +561,7 @@ def _root_.CategoryTheory.Sieve.functorArrowsCategory {X : C} (S : Sieve X) :
     simp -- FALSE ???
     sorry
 
-def nfdjkzl {X : C} (S : Sieve X) :
+noncomputable def _root_.CategoryTheory.Sieve.sectionCategoryUliftFunctor {X : C} (S : Sieve X) :
     (sectionProperty S.uliftFunctor).FullSubcategory ≌ S.arrows.category := by
   unfold Presieve.category
   fapply Equivalence.mk
@@ -577,8 +607,29 @@ def nfdjkzl {X : C} (S : Sieve X) :
     · intro ⟨f, hf⟩
       simp only [sectionProperty, Over.mk_left]
       infer_instance
-  · sorry
-  · sorry
+  · refine NatIso.ofComponents ?_ ?_
+    · intro ⟨F, (_ : F.left.IsRepresentable)⟩
+      refine ObjectProperty.isoMk _ (Over.isoMk F.left.uliftReprW.symm ?_)
+      apply (cancel_mono S.uliftFunctorInclusion).1
+      simp only [id_obj, ObjectProperty.ι_obj, const_obj_obj, Over.mk_left, comp_obj,
+        Sieve.functor_obj, uliftFunctor_obj, ObjectProperty.lift_obj_obj, Over.mk_hom, Iso.symm_hom,
+        Category.assoc]
+      change _ ≫ CategoryTheory.uliftYonedaEquiv.symm (_ : S.uliftFunctor.obj _) ≫ _ = _
+      rw [S.uliftYonedaEquiv_comp_uliftFunctorInclusion]
+      simp
+    · refine fun _ => Over.OverMorphism.ext ?_
+      change _ ≫ _ = _ ≫ _
+      simp
+  · refine NatIso.ofComponents ?_ ?_
+    · intro ⟨f, hf⟩
+      refine ObjectProperty.isoMk _ (Over.isoMk reprXUliftYoneda ?_)
+      apply (ULiftYoneda.fullyFaithful.{u} _).map_injective
+      simp only [comp_obj, Over.mk_left, ObjectProperty.ι_obj, ObjectProperty.lift_obj_obj,
+        Over.mk_hom, map_comp, uliftReprWYoneda, FullyFaithful.map_preimage]
+      rfl
+    · refine fun _ => Over.OverMorphism.ext ?_
+      change _ ≫ _ = _ ≫ _
+      simp [uliftReprWYoneda]
 
 theorem hfjklzhg {X : C} (S : Sieve X) : S.functorDiagram ≅ (sectionProperty S.functor).ι ⋙ Over.forget _ := by
   sorry

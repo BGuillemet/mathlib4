@@ -510,6 +510,12 @@ noncomputable def RepresentableBy.isoReprX {Y : C} (e : F.RepresentableBy Y) :
     Y ≅ F.reprX :=
   RepresentableBy.uniqueUpToIso e (representableBy F)
 
+noncomputable def reprXYoneda {Y : C} : (yoneda.obj Y).reprX ≅ Y :=
+  (RepresentableBy.isoReprX _ (representableByEquiv.symm (Iso.refl _))).symm
+
+noncomputable def reprXUliftYoneda {Y : C} : (uliftYoneda.obj.{v} Y).reprX ≅ Y :=
+  (RepresentableBy.isoReprX _ ((RepresentableBy.equivUliftYonedaIso _ _).symm (Iso.refl _))).symm
+
 /-- The representing element for the representable functor `F`, sometimes called the universal
 element of the functor.
 -/
@@ -526,13 +532,29 @@ noncomputable def reprW (F : Cᵒᵖ ⥤ Type v₁) [F.IsRepresentable] :
 /-- An isomorphism between a representable `F` and a functor of the
 form `C(-, F.reprX)`.
 -/
-noncomputable def uliftReprW (F : Cᵒᵖ ⥤ Type (max v v₁)) [F.IsRepresentable] :
+noncomputable def uliftReprW (F : Cᵒᵖ ⥤ Type max v v₁) [F.IsRepresentable] :
     uliftYoneda.obj.{v} F.reprX ≅ F := F.representableBy.toIsoUlift
 
 theorem reprW_hom_app (F : Cᵒᵖ ⥤ Type v₁) [F.IsRepresentable]
     (X : Cᵒᵖ) (f : unop X ⟶ F.reprX) :
     F.reprW.hom.app X f = F.map f.op F.reprx := by
   apply RepresentableBy.homEquiv_eq
+
+theorem uliftReprW_hom_app (F : Cᵒᵖ ⥤ Type max v v₁) [F.IsRepresentable]
+    (X : Cᵒᵖ) (f : unop X ⟶ F.reprX) :
+    (uliftReprW.{v} F).hom.app X { down := f } = F.map f.op F.reprx := by
+  apply RepresentableBy.homEquiv_eq
+
+theorem reprWYoneda {Y : C} : (yoneda.obj Y).reprW = yoneda.mapIso reprXYoneda := by
+  ext X s
+  rw [reprW_hom_app]
+  rfl
+
+theorem uliftReprWYoneda {Y : C} :
+    uliftReprW.{v} (uliftYoneda.{v}.obj Y) = uliftYoneda.{v}.mapIso reprXUliftYoneda.{v} := by
+  ext X s
+  rw [(ULift.up_down s).symm, uliftReprW_hom_app]
+  rfl
 
 end Representable
 
