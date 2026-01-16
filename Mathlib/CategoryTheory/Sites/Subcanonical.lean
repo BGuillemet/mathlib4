@@ -716,7 +716,18 @@ noncomputable def _root_.CategoryTheory.Sieve.functorCoconeWhiskerUliftFunctorEl
     S.functorCocone.whisker S.uliftFunctorElements.functor ≅
       (Limits.Cocones.precompose S.uliftFunctorElementsCompFunctorDiagram.hom).obj
       (Presheaf.coconeOfRepresentable S.uliftFunctor) := by
-  sorry
+  refine Limits.Cocones.ext (Iso.refl _) ?_
+  intro x
+  ext Y f
+  refine ULift.ext _ _ (Subtype.ext ?_)
+  simp [Sieve.uliftFunctorElements, ← S.app_down_val]
+  rfl
+
+noncomputable def _root_CategoryTheory.Sieve.isColimitFunctorCocone {X : C} (S : Sieve X) :
+    Limits.IsColimit S.functorCocone :=
+  Limits.IsColimit.ofWhiskerEquivalence _
+    (Limits.IsColimit.ofIsoColimit ((Limits.IsColimit.precomposeHomEquiv _ _).2
+      (Presheaf.colimitOfRepresentable _)) S.functorCoconeWhiskerUliftFunctorElements.symm)
 
 variable [HasWeakSheafify J (Type max u v)] in
 theorem fkemzjf {X : C} (S : Sieve X) :
@@ -735,23 +746,6 @@ abbrev functorDiagram {X : C} (S : Sieve X) : S.arrows.category ⥤ Sheaf J (Typ
 lemma functorDiagram_eq_functorDiagram_comp_presheafToSheaf {X : C} (S : Sieve X) :
     J.functorDiagram S = S.functorDiagram ⋙ presheafToSheaf J (Type max u v) := by
   unfold functorDiagram Sieve.functorDiagram
-
-def fjkezlmf {X : C} (S : Sieve X) :
-    Limits.IsColimit S.functorCocone where
-  desc s := by
-    refine NatTrans.mk (fun _ g =>
-      CategoryTheory.uliftYonedaEquiv (s.ι.app ⟨Over.mk g.down.val, g.down.property⟩)) ?_
-    intro Y Z f
-    ext g
-    simp only [id_obj, Sieve.functorCocone_pt_obj, op_unop, Sieve.functor_obj, types_comp_apply,
-      Sieve.functorCocone_pt_map_down_coe]
-    rw [CategoryTheory.uliftYonedaEquiv_naturality]
-    let Y' : S.arrows.category := ⟨Over.mk g.down.val, g.down.property⟩
-    let X' : S.arrows.category :=
-      ⟨Over.mk (f.unop ≫ g.down.val), S.downward_closed g.down.property f.unop⟩
-    let f' : X' ⟶ Y' := Over.homMk f.unop
-    simpa [X', Y', f'] using (s.ι.naturality f').symm
-  fac := by
 
 
 noncomputable def desc {X : C} (S : Sieve X) :
@@ -843,11 +837,7 @@ theorem covering_iff_colimit_yoneda {X : C} (S : Sieve X) :
         · exact (s.pt.cond.isSheafFor S hS).isAmalgamation (familyOfElementsPtVal_compatible J s)
       }
   · refine fun ⟨h⟩ => J.mem_of_isSheafFor_pullback _ _ (fun F Y f => ?_)
-    have : Limits.IsColimit S.functorCocone := {
-      desc s := by
-        change S.functor ⋙ uliftFunctor ⟶ s.pt
-
-    }
+    -- TODO : change for uliftYoneda
     have : IsIso S.functorInclusion := by
       sorry
     have : Limits.IsColimit (J.yoneda.mapCocone (S.pullback f).arrows.cocone) := by
