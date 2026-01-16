@@ -495,6 +495,34 @@ instance isEquivalence_toOver (F : D ⥤ T) (X : T) [F.IsEquivalence] :
     (toOver F X).IsEquivalence :=
   CostructuredArrow.isEquivalence_pre _ _ _
 
+@[simps!]
+noncomputable def equivOver (F : D ⥤ T) (X : D) (hF : F.FullyFaithful) :
+    CostructuredArrow F (F.obj X) ≌ Over X where
+  functor :=
+    { obj f := Over.mk (hF.preimage f.hom)
+      map g := Over.homMk g.left (hF.map_injective (by simp)) }
+  inverse :=
+    { obj f := CostructuredArrow.mk (F.map f.hom)
+      map g := CostructuredArrow.homMk g.left (by simp [← Functor.map_comp]) }
+  unitIso := NatIso.ofComponents fun f ↦
+    f.eta ≪≫ eqToIso (congrArg _ (hF.map_preimage _).symm)
+  counitIso := NatIso.ofComponents fun f ↦
+    eqToIso (congrArg Over.mk (hF.preimage_map f.hom)) ≪≫ f.eta.symm
+
+@[simps!]
+noncomputable def equivOver' (F : D ⥤ T) (X : D) [F.Faithful] [F.Full] :
+    CostructuredArrow F (F.obj X) ≌ Over X := by
+  let β : Functor.fromPUnit X ⋙ F ⟶ 𝟭 _ ⋙ Functor.fromPUnit (F.obj X) :=
+    eqToHom (Discrete.functor_ext (congrFun rfl))
+  exact (Comma.map (𝟙 _) β).asEquivalence.symm
+
+@[simps!]
+noncomputable def equivOverFunctorObj' (F : D ⥤ T) (X : D) [F.Faithful] [F.Full]
+    (f : CostructuredArrow F (F.obj X)) :
+    (equivOver' F X).functor.obj f ≅ Over.mk (F.preimage f.hom) :=
+  ((Comma.map _ _).asEquivalence.fullyFaithfulFunctor).preimageIso
+    (Functor.objObjPreimageIso _ _ ≪≫ Comma.isoMk (Iso.refl _) (Iso.refl _) (by simp))
+
 end CostructuredArrow
 
 /-- The under category has as objects arrows with domain `X` and as morphisms commutative

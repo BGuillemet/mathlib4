@@ -6,10 +6,12 @@ Authors: Dagur Asgeirsson
 module
 
 public import Mathlib.CategoryTheory.Limits.Preserves.Ulift
+public import Mathlib.CategoryTheory.Limits.Presheaf
 public import Mathlib.CategoryTheory.Sites.Canonical
 public import Mathlib.CategoryTheory.Sites.Whiskering
 public import Mathlib.CategoryTheory.Sites.Closed
 public import Mathlib.CategoryTheory.Sites.Coverage
+
 /-!
 
 # Subcanonical Grothendieck topologies
@@ -355,11 +357,11 @@ noncomputable def _root_.CategoryTheory.Sieve.pullbackFunctorIsoPullback {X Y : 
       Limits.pullback (CategoryTheory.yoneda.map f) S.functorInclusion :=
   (S.isPullback f).isoPullback
 
-@[simps!]
-def _root_.CategoryTheory.Sieve.functorDiagram {X : C} (S : Sieve X) :
+abbrev _root_.CategoryTheory.Sieve.functorDiagram {X : C} (S : Sieve X) :
     S.arrows.category ⥤ Cᵒᵖ ⥤ Type max u v :=
   S.arrows.diagram ⋙ CategoryTheory.uliftYoneda
 
+@[simps!]
 def _root_.CategoryTheory.Sieve.functorCocone {X : C} (S : Sieve X) :
     Limits.Cocone S.functorDiagram where
   pt := S.functor ⋙ uliftFunctor
@@ -383,7 +385,7 @@ variable [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] (F : Cᵒ�
 def _root_.CategoryTheory.sectionProperty : ObjectProperty (Over F) :=
   fun G => IsRepresentable G.1
 
-def _root_.CategoryTheory.sectionCategory := (sectionProperty F).FullSubcategory
+abbrev _root_.CategoryTheory.sectionCategory := (sectionProperty F).FullSubcategory
 
 instance : Category (sectionCategory F) := ObjectProperty.FullSubcategory.category _
 
@@ -546,23 +548,35 @@ def _root_.CategoryTheory.Sieve.functorSectionPropertyFullSubcategory {X : C} (S
   map_id _ := Over.OverMorphism.ext (by simp [ObjectProperty.FullSubcategory.id_def])
   map_comp _ _ := Over.OverMorphism.ext (by simp [ObjectProperty.FullSubcategory.comp_def])
 
-def _root_.CategoryTheory.Sieve.functorArrowsCategory {X : C} (S : Sieve X) :
-    (sectionProperty (S.functor ⋙ uliftFunctor)).FullSubcategory ⥤ S.arrows.category where
-  obj := by
-    intro F
-    have := (CategoryTheory.uliftYonedaEquiv (F.obj.left.uliftReprW.hom ≫ F.obj.hom)).down
-    exact ⟨Over.mk this.1, this.2⟩
-  map := by
-    intro ⟨⟨F, _, f⟩, (_ : F.IsRepresentable)⟩ ⟨⟨G, _, g⟩, (_ : G.IsRepresentable)⟩ φ
-    refine Over.homMk ((CategoryTheory.ULiftYoneda.fullyFaithful _).preimage
-      (F.uliftReprW.hom ≫ φ.left ≫ G.uliftReprW.inv)) ?_
-    apply (ULiftYoneda.fullyFaithful.{u} _).map_injective
-    rw [map_comp]
-    simp -- FALSE ???
-    sorry
+omit [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+@[simp]
+theorem _root_.CategoryTheory.Sieve.app_comp_down_val {X : C} (S : Sieve X) {Y : C}
+    (F : CategoryTheory.uliftYoneda.{u}.obj Y ⟶ S.uliftFunctor) {Z : Cᵒᵖ} (f : Z.unop ⟶ Y)
+    {Z' : Cᵒᵖ} (g : Z'.unop ⟶ Z.unop) :
+    (F.app Z' { down := g ≫ f }).down.val = g ≫ (F.app Z { down := f }).down.val :=
+  congr(($(F.naturality g.op) { down := f }).down.val)
 
+omit [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+theorem _root_.CategoryTheory.Sieve.app_down_val {X : C} (S : Sieve X) {Y : C}
+    (F : CategoryTheory.uliftYoneda.{u}.obj Y ⟶ S.uliftFunctor) {Z : Cᵒᵖ} (f : Z.unop ⟶ Y) :
+    (F.app Z { down := f }).down.val =
+      f ≫ (ULiftYoneda.fullyFaithful C).preimage (F ≫ S.uliftFunctorInclusion) := by
+  apply (ULiftYoneda.fullyFaithful.{u} _).map_injective
+  ext Z' t
+  simp [S.app_comp_down_val]
+
+omit [HasWeakSheafify (Sheaf.canonicalTopology C) (Type max u v)] in
+theorem _root_.CategoryTheory.Sieve.app_down_val' {X : C} (S : Sieve X) {Y : C}
+    (F : CategoryTheory.uliftYoneda.{u}.obj Y ⟶ S.uliftFunctor) {Z : Cᵒᵖ}
+    (f : ULift.{u} (Z.unop ⟶ Y)) :
+    (F.app Z f).down.val =
+      f.down ≫ (ULiftYoneda.fullyFaithful C).preimage (F ≫ S.uliftFunctorInclusion) :=
+  S.app_down_val F f.down
+
+-- useless
+@[simps!]
 noncomputable def _root_.CategoryTheory.Sieve.sectionCategoryUliftFunctor {X : C} (S : Sieve X) :
-    (sectionProperty S.uliftFunctor).FullSubcategory ≌ S.arrows.category := by
+    sectionCategory S.uliftFunctor ≌ S.arrows.category := by
   unfold Presieve.category
   fapply Equivalence.mk
   · refine ObjectProperty.lift _ ?_ ?_
@@ -631,10 +645,77 @@ noncomputable def _root_.CategoryTheory.Sieve.sectionCategoryUliftFunctor {X : C
       change _ ≫ _ = _ ≫ _
       simp [uliftReprWYoneda]
 
-theorem hfjklzhg {X : C} (S : Sieve X) : S.functorDiagram ≅ (sectionProperty S.functor).ι ⋙ Over.forget _ := by
-  sorry
+@[simps]
+def _root_.CategoryTheory.Sieve.uliftFunctorMk {X : C} (S : Sieve X) (f : S.arrows.category) :
+    S.uliftFunctor.obj (Opposite.op f.obj.left) :=
+  { down := ⟨f.obj.hom, f.property⟩ }
 
-def fjkzmjaf {X : C} (S : Sieve X) : S.functorCocone ≅ sectionCocone S.functor :=
+@[simps!]
+noncomputable def _root_.CategoryTheory.Sieve.costructuredArrowUliftYoneda {X : C} (S : Sieve X) :
+    CostructuredArrow CategoryTheory.uliftYoneda.{u} S.uliftFunctor ≌ S.arrows.category where
+  functor := by
+    refine ObjectProperty.lift _ ?_ ?_
+    · exact CostructuredArrow.map S.uliftFunctorInclusion ⋙
+        (CostructuredArrow.equivOver _ _ (ULiftYoneda.fullyFaithful _)).functor
+    · exact fun _ => (S.arrows_iff_exists_map_functor _).2 (by simp)
+  inverse := by
+    refine toCostructuredArrow S.arrows.diagram _ _ ?_ ?_
+    · exact fun f => CategoryTheory.uliftYonedaEquiv.symm (S.uliftFunctorMk f)
+    · intro f g φ
+      simpa [Sieve.functor] using
+        (CategoryTheory.uliftYonedaEquiv_symm_map.{u} φ.left.op (S.uliftFunctorMk g)).symm
+  unitIso := NatIso.ofComponents (fun _ => by
+    refine CostructuredArrow.isoMk (Iso.refl _) ?_
+    ext Y g
+    simpa using (uliftYonedaEquiv_symm_apply_app _ _ _).trans
+        (ULift.ext _ _ (Subtype.ext (by simp [Sieve.app_down_val']))))
+  counitIso := NatIso.ofComponents (fun _ => ObjectProperty.isoMk _ (Over.isoMk (Iso.refl _))) (by
+    refine fun _ => Over.OverMorphism.ext ?_
+    simp
+    change _ ≫ _ = _ ≫ _
+    simp)
+  functor_unitIso_comp := by
+    refine fun _ => Over.OverMorphism.ext ?_
+    change _ ≫ _ = 𝟙 _
+    simp
+
+noncomputable def _root_.CategoryTheory.Sieve.uliftFunctorElements {X : C} (S : Sieve X) :
+    S.uliftFunctor.Elementsᵒᵖ ≌ S.arrows.category :=
+  (CategoryOfElements.costructuredArrowULiftYonedaEquivalence _).trans
+    S.costructuredArrowUliftYoneda
+
+-- useless
+@[simps!]
+noncomputable def _root_.CategoryTheory.Sieve.sectionCategoryUliftFunctorCompFunctorDiagram {X : C}
+    (S : Sieve X) : S.sectionCategoryUliftFunctor.functor ⋙ S.functorDiagram ≅
+      (sectionProperty S.uliftFunctor).ι ⋙ Over.forget _ :=
+  NatIso.ofComponents (fun ⟨F, (_ : F.left.IsRepresentable)⟩ => F.left.uliftReprW)
+
+@[simps!]
+noncomputable def _root_.CategoryTheory.Sieve.uliftFunctorElementsCompFunctorDiagram {X : C}
+    (S : Sieve X) : S.uliftFunctorElements.functor ⋙ S.functorDiagram ≅
+      Presheaf.functorToRepresentables S.uliftFunctor :=
+  NatIso.ofComponents fun _ => Iso.refl _
+
+-- useless
+noncomputable def _root_.CategoryTheory.Sieve.functorCoconeWhiskerSectionCategoryUliftFunctor
+    {X : C} (S : Sieve X) :
+    S.functorCocone.whisker S.sectionCategoryUliftFunctor.functor ≅
+      (Limits.Cocones.precompose S.sectionCategoryUliftFunctorCompFunctorDiagram.hom).obj
+      (sectionCocone S.uliftFunctor) := by
+  refine Limits.Cocones.ext (Iso.refl _) ?_
+  intro F
+  ext Y f
+  refine ULift.ext _ _ (Subtype.ext ?_)
+  change _ ≫ _ = ((F.obj.left.uliftReprW.hom ≫ F.obj.hom).app Y _).down.val
+  rw [← ULift.up_down f, S.app_down_val]
+  rfl
+
+noncomputable def _root_.CategoryTheory.Sieve.functorCoconeWhiskerUliftFunctorElements {X : C}
+    (S : Sieve X) :
+    S.functorCocone.whisker S.uliftFunctorElements.functor ≅
+      (Limits.Cocones.precompose S.uliftFunctorElementsCompFunctorDiagram.hom).obj
+      (Presheaf.coconeOfRepresentable S.uliftFunctor) := by
   sorry
 
 variable [HasWeakSheafify J (Type max u v)] in
@@ -643,6 +724,35 @@ theorem fkemzjf {X : C} (S : Sieve X) :
   sorry
 
 variable [HasWeakSheafify J (Type max u v)]
+
+theorem uliftYoneda_comp_presheafToSheaf :
+    CategoryTheory.uliftYoneda.{u} ⋙ presheafToSheaf J (Type max u v) = J.uliftYoneda := by
+  sorry
+
+abbrev functorDiagram {X : C} (S : Sieve X) : S.arrows.category ⥤ Sheaf J (Type max u v) :=
+  S.arrows.diagram ⋙ uliftYoneda.{u} J
+
+lemma functorDiagram_eq_functorDiagram_comp_presheafToSheaf {X : C} (S : Sieve X) :
+    J.functorDiagram S = S.functorDiagram ⋙ presheafToSheaf J (Type max u v) := by
+  unfold functorDiagram Sieve.functorDiagram
+
+def fjkezlmf {X : C} (S : Sieve X) :
+    Limits.IsColimit S.functorCocone where
+  desc s := by
+    refine NatTrans.mk (fun _ g =>
+      CategoryTheory.uliftYonedaEquiv (s.ι.app ⟨Over.mk g.down.val, g.down.property⟩)) ?_
+    intro Y Z f
+    ext g
+    simp only [id_obj, Sieve.functorCocone_pt_obj, op_unop, Sieve.functor_obj, types_comp_apply,
+      Sieve.functorCocone_pt_map_down_coe]
+    rw [CategoryTheory.uliftYonedaEquiv_naturality]
+    let Y' : S.arrows.category := ⟨Over.mk g.down.val, g.down.property⟩
+    let X' : S.arrows.category :=
+      ⟨Over.mk (f.unop ≫ g.down.val), S.downward_closed g.down.property f.unop⟩
+    let f' : X' ⟶ Y' := Over.homMk f.unop
+    simpa [X', Y', f'] using (s.ι.naturality f').symm
+  fac := by
+
 
 noncomputable def desc {X : C} (S : Sieve X) :
     Limits.colimit (S.arrows.diagram ⋙ uliftYoneda.{u} J) ⟶ (uliftYoneda.{u} J).obj X :=

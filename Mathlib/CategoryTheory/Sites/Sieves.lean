@@ -465,6 +465,10 @@ theorem arrows_ext : ∀ {R S : Sieve X}, R.arrows = S.arrows → R = S := by
 protected theorem ext {R S : Sieve X} (h : ∀ ⦃Y⦄ (f : Y ⟶ X), R f ↔ S f) : R = S :=
   arrows_ext <| funext fun _ => funext fun f => propext <| h f
 
+theorem arrows_of_iso {S : Sieve X} {f g : Over X} (e : f ≅ g) (hf : S.arrows f.hom) :
+    S.arrows g.hom := by
+  simpa using S.downward_closed hf e.inv.left
+
 open Lattice
 
 /-- The supremum of a collection of sieves: the union of them all. -/
@@ -574,23 +578,6 @@ def generateFunctor (R : Presieve X) :
 lemma generateFunctor_comp_diagram_generate (R : Presieve X) :
     generateFunctor R ⋙ (generate R).arrows.diagram = R.diagram :=
   rfl
-
--- FALSE ???
-/- instance (R : Presieve X) : (generateFunctor R).Final where
-  out f := {
-    iso_constant F g := by
-      refine ⟨?_⟩
-      refine NatIso.ofComponents ?_ ?_
-      · intro h
-        simp
-        obtain ⟨_, f, f₂⟩ := f
-        obtain ⟨_, g, g₂⟩ := g
-        simp at f₂ g₂
-      sorry
-    is_nonempty := by
-      obtain ⟨Y, h, g, Hg, H⟩ := f.property
-      exact ⟨Comma.mk { as := () } ⟨Over.mk g, Hg⟩ (Over.homMk h H)⟩
-  } -/
 
 /-- Given a presieve on `X`, and a sieve on each domain of an arrow in the presieve, we can bind to
 produce a sieve on `X`.
