@@ -203,6 +203,11 @@ theorem isSheaf_of_isRepresentable (P : Cᵒᵖ ⥤ Type v) [P.IsRepresentable] 
     Presieve.IsSheaf (canonicalTopology C) P :=
   Presieve.isSheaf_iso (canonicalTopology C) P.reprW (isSheaf_yoneda_obj _)
 
+/-- A representable functor is a sheaf for the canonical topology. -/
+theorem isSheaf_of_isRepresentable' (P : Cᵒᵖ ⥤ Type w) [P.IsRepresentable] :
+    Presieve.IsSheaf (canonicalTopology C) P :=
+  sorry
+
 theorem mem_grothendieckTopology_iff_colimit {X : C} (S : Sieve X) :
     S ∈ canonicalTopology C X ↔ Nonempty (Limits.IsColimit S.arrows.cocone) := by
   rw [← S.forallYonedaIsSheaf_iff_colimit]
@@ -248,6 +253,13 @@ theorem of_isSheaf_yoneda_obj (J : GrothendieckTopology C)
 theorem isSheaf_of_isRepresentable {J : GrothendieckTopology C} [Subcanonical J]
     (P : Cᵒᵖ ⥤ Type v) [P.IsRepresentable] : Presieve.IsSheaf J P :=
   Presieve.isSheaf_of_le _ J.le_canonical (Sheaf.isSheaf_of_isRepresentable P)
+
+/-- If `J` is subcanonical, then any representable is a `J`-sheaf. -/
+theorem isSheaf_of_isRepresentable' {J : GrothendieckTopology C} [Subcanonical J]
+    (P : Cᵒᵖ ⥤ Type w) [P.IsRepresentable] : Presieve.IsSheaf J P :=
+  Presieve.isSheaf_of_le _ J.le_canonical (Sheaf.isSheaf_of_isRepresentable' P)
+
+  --(Sheaf.isSheaf_of_isRepresentable P)
 
 variable {J : GrothendieckTopology C}
 
@@ -298,6 +310,26 @@ def uliftYonedaCompSheafToPresheaf :
     GrothendieckTopology.uliftYoneda.{w} J ⋙ sheafToPresheaf J (Type max v w) ≅
       CategoryTheory.yoneda ⋙ (Functor.whiskeringRight _ _ _).obj uliftFunctor.{w} :=
   Iso.refl _
+
+variable {J} in
+@[simps! hom inv]
+def _root_.CategoryTheory.Sheaf.isoMk {A : Type*} [Category A] {F G : Sheaf J A}
+    (h : F.val ≅ G.val) : F ≅ G :=
+  (fullyFaithfulSheafToPresheaf _ _).isoEquiv.symm h
+
+@[simps! hom_app inv_app]
+noncomputable def yonedaIsoCompPresheafToSheaf [HasWeakSheafify J (Type v)] :
+    GrothendieckTopology.yoneda J ≅ CategoryTheory.yoneda ⋙ presheafToSheaf J _ :=
+  NatIso.ofComponents fun X ↦ Sheaf.isoMk (isoSheafify J ((isSheaf_iff_isSheaf_of_type _ _).2
+    (Subcanonical.isSheaf_of_isRepresentable (CategoryTheory.yoneda.obj X))))
+
+attribute [local simp] CategoryTheory.uliftYoneda in
+@[simps! hom_app inv_app]
+noncomputable def uliftYonedaIsoCompPresheafToSheaf [HasWeakSheafify J (Type max w v)] :
+    GrothendieckTopology.uliftYoneda.{w} J ≅ CategoryTheory.uliftYoneda.{w} ⋙ presheafToSheaf J _ :=
+  NatIso.ofComponents fun X ↦ Sheaf.isoMk (isoSheafify J ((isSheaf_iff_isSheaf_of_type _ _).2
+    (Presieve.isSheaf_comp_uliftFunctor J (Subcanonical.isSheaf_of_isRepresentable
+    (CategoryTheory.yoneda.obj X)))))
 
 /-- The yoneda functor into the sheaf category is fully faithful -/
 def yonedaFullyFaithful : (J.yoneda).FullyFaithful :=
